@@ -5,7 +5,8 @@
 
 import Foundation
 
-public struct ProductQuantity: Codable {
+/// Product definition used in the JSON returned by the in-game schematic API.
+public struct JSONProduct: Codable {
     public let name: String
     public let quantity: Double
     public let type: String
@@ -16,7 +17,7 @@ public struct Product: Codable {
     public let name: String
     public let schematic: Int?
     
-    public init(_ productQuantity: ProductQuantity) {
+    public init(_ productQuantity: JSONProduct) {
         self.name = productQuantity.name
         self.schematic = productQuantity.id
     }
