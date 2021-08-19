@@ -9,9 +9,15 @@ import XCTestExtensions
 @testable import duswift
 
 final class duswiftTests: XCTestCase {
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
+    func testLogs() {
+        
+        let url = URL(fileURLWithPath: "/Users/sam/Developer/Projects/duswift/Sources/duswift/Resources/example-log.xml")
+        
+        let parser = LogParser()
+        let log = parser.parse(url: url)
+        
+        for entry in log.entries {
+            print(entry.message)
+        }
     }
 }

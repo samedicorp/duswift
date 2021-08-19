@@ -1,0 +1,67 @@
+<record>
+<date>2021-08-18T00:35:17Z</date>
+<millis>1629246917580</millis>
+<sequence>0</sequence>
+<logger>D:\Bamboo1\xml-data\build-dir\WC-REL21098-CSTS\Source\engine\util\Logger.cpp:244</logger>
+<level>DEBUG</level>
+<class>WC-REL21098-CSTS.engine.util</class>
+<method>NQ::setupLogSystem</method>
+<thread>9728</thread>
+<message>Original Source: D:\Bamboo1\xml-data\build-dir\WC-REL21098-CSTS\Source\engine\util\Logger.cpp</message>
+</record>
+<record>
+<date>2021-08-18T00:35:17Z</date>
+<millis>1629246917602</millis>
+<sequence>1</sequence>
+<logger>D:\Bamboo1\xml-data\build-dir\WC-REL21098-CSTS\serv\nqlibs\nqsettings\source\ClassScheme.cpp:42</logger>
+<level>DEBUG</level>
+<class>nqsettings</class>
+<method>NQ::ClassScheme::loadYAML</method>
+<thread>9728</thread>
+<message>key enableOrganization of type 2 is in yaml but not used in dom for Schema: struct NQ::Settings::AppSettings</message>
+</record>
+<record>
+<date>2021-08-18T00:35:17Z</date>
+<millis>1629246917606</millis>
+<sequence>2</sequence>
+<logger>D:\Bamboo1\xml-data\build-dir\WC-REL21098-CSTS\serv\nqlibs\nqsettings\source\ClassScheme.cpp:42</logger>
+<level>DEBUG</level>
+<class>nqsettings</class>
+<method>NQ::ClassScheme::loadYAML</method>
+<thread>9728</thread>
+<message>key doubleClickTime of type 2 is in yaml but not used in dom for Schema: struct NQ::Settings::AppSettings</message>
+</record>
+<record>
+<date>2021-08-18T00:35:17Z</date>
+<millis>1629246917607</millis>
+<sequence>3</sequence>
+<logger>D:\Bamboo1\xml-data\build-dir\WC-REL21098-CSTS\serv\nqlibs\nqsettings\source\ClassScheme.cpp:42</logger>
+<level>DEBUG</level>
+<class>nqsettings</class>
+<method>NQ::ClassScheme::loadYAML</method>
+<thread>9728</thread>
+<message>key rotateFactor of type 2 is in yaml but not used in dom for Schema: struct NQ::Settings::CharacterSettings::Camera</message>
+</record>
+<record>
+<date>2021-08-18T00:35:17Z</date>
+<millis>1629246917607</millis>
+<sequence>4</sequence>
+<logger>D:\Bamboo1\xml-data\build-dir\WC-REL21098-CSTS\serv\nqlibs\nqsettings\source\ClassScheme.cpp:42</logger>
+<level>DEBUG</level>
+<class>nqsettings</class>
+<method>NQ::ClassScheme::loadYAML</method>
+<thread>9728</thread>
+<message>key minNeighbors of type 2 is in yaml but not used in dom for Schema: struct NQ::Settings::CharacterSettings::Detector</message>
+</record>
+<record>
+<date>2021-08-18T00:35:17Z</date>
+<millis>1629246917607</millis>
+<sequence>5</sequence>
+<logger>D:\Bamboo1\xml-data\build-dir\WC-REL21098-CSTS\serv\nqlibs\nqsettings\source\ClassScheme.cpp:42</logger>
+<level>DEBUG</level>
+<class>nqsettings</class>
+<method>NQ::ClassScheme::loadYAML</method>
+<thread>9728</thread>
+<message>key maxOperationDurationBeforeWarning of type 2 is in yaml but not used in dom for Schema: struct NQ::Settings::CharacterSettings::Detector</message>
+</record>
+<record>
