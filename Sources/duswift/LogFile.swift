@@ -39,15 +39,15 @@ public let knownClasses: Set<String> = [
 
 let pattern = """
 <record>
-<date>.*</date>
-<millis>.*</millis>
-<sequence>.*</sequence>
-<logger>.*</logger>
-<level>.*</level>
-<class>.*</class>
-<method>.*</method>
-<thread>.*</thread>
-<message>.*</message>
+<date>.*?</date>
+<millis>.*?</millis>
+<sequence>.*?</sequence>
+<logger>.*?</logger>
+<level>.*?</level>
+<class>.*?</class>
+<method>.*?</method>
+<thread>.*?</thread>
+<message>.*?</message>
 </record>
 """
 
@@ -90,16 +90,21 @@ public class LogParser: NSObject {
         entries.removeAll()
 
         print("Loading")
-        var source = "<xml>"
-        if let string = try? String(contentsOf: url) {
-            source += string
-        }
-        source += "</xml>"
+        let source = try! String(contentsOf: url)
 
         print("Parsing")
-        let parser = XMLParser(data: source.data(using: .utf8)!)
-        parser.delegate = self
-        parser.parse()
+        for line in source.split(separator: "\n") {
+            print(line)
+        }
+        let re = try! NSRegularExpression(pattern: pattern, options: .allowCommentsAndWhitespace)
+        var range = NSRange(location: 0, length: source.count)
+        while true {
+            let match = re.firstMatch(in: source, options: [], range: range)
+            print(match)
+        }
+//        let parser = XMLParser(data: source.data(using: .utf8)!)
+//        parser.delegate = self
+//        parser.parse()
 
         print("Done")
         return LogFile(entries: entries)

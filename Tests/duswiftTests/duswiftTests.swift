@@ -5,6 +5,8 @@
 
 import XCTest
 import XCTestExtensions
+import ElegantStrings
+import Files
 
 @testable import duswift
 
@@ -34,4 +36,60 @@ final class duswiftTests: XCTestCase {
         print(classes.sorted().joined(separator: "\",\n\""))
     }
 
+    func testRelog() {
+        let name = bigLog.deletingPathExtension().lastPathComponent
+        let bigJSON = ThrowingManager.file(for: bigLog.deletingLastPathComponent().appendingPathComponent(name).appendingPathExtension("json"))
+
+        if !bigJSON.exists {
+            print("Converting file.")
+            let parser = LogParser()
+            let log = parser.parse(url: bigLog)
+            
+            print("\(log.entries.count) entries.")
+            
+            print("Encoding file.")
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            let data = try! encoder.encode(log)
+            try! data.write(to: bigJSON.url)
+        } else {
+            print("Decoding file.")
+            let decoder = JSONDecoder()
+            let log = try! decoder.decode(LogFile.self, from: try! Data(contentsOf: bigJSON.url))
+            
+            print("\(log.entries.count) entries.")
+            print(log.entries.map { $0.message })
+        }
+
+        print("blah")
+
+    }
+    
+    func testAsync() {
+        let re = try! NSRegularExpression(pattern: "<(.*?)>(.*?)</\\1>", options: .allowCommentsAndWhitespace)
+
+        Task {
+            do {
+                for try await line in bigLog.lines {
+                    var range = NSRange(location: 0, length: line.count)
+                    if line == "<record>" {
+                        print("record start")
+                    } else if line == "</record>" {
+                        print("record end")
+                    } else if let match = re.firstMatch(in: line, options: [], range: range) {
+                        let lineString = String(line)
+                        let nameRange = match.range(at: 1)
+                        let start = lineString.index(lineString.startIndex, offsetBy: nameRange.location)
+                        let end = lineString.index(lineString.startIndex, offsetBy: nameRange.location + nameRange.length)
+                        let name = lineString[start ..< end]
+                        print(name)
+                        print(match.range(at: 2))
+                    }
+                    print(line)
+                }
+            } catch {
+                
+            }
+        }
+    }
 }
