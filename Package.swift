@@ -13,15 +13,28 @@ let package = Package(
         .macOS(.v10_15), .iOS(.v13), .tvOS(.v13), .watchOS(.v6)
     ],
     products: [
+        .executable(
+            name: "dulog",
+            targets: ["dulog"]
+        ),
+        
         .library(
             name: "duswift",
             targets: ["duswift"]),
     ],
     dependencies: [
         .package(url: "https://github.com/elegantchaos/Coercion.git", from: "1.1.2"),
+        .package(url: "https://github.com/elegantchaos/Files.git", from: "1.2.0"),
         .package(url: "https://github.com/elegantchaos/XCTestExtensions.git", from: "1.4.2")
     ],
     targets: [
+        .target(
+            name: "dulog",
+            dependencies: [
+                "duswift",
+                .product(name: "Files", package: "Files")
+            ]
+        ),
         .target(
             name: "duswift",
             dependencies: [

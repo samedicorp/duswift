@@ -6,22 +6,52 @@
 import Coercion
 import Foundation
 
-let classes = ["pkfx.Kernel|CapsCpu", "WC-REL21098-CSTS.engine.util", "squarion.sys.threading", "pkfx.Geometrics|MeshDeformers", "anticheat.thread", "pkfx.Kernel|Scheduler", "pkfx.Particles", "voxel.textures", "pkfx.Kernel|Plugins", "WC-REL21098-CSTS.engine.util.filesystem", "WC-REL21098-CSTS.game", "pkfx.Kernel|CapsMem", "WC-REL21098-CSTS.engine.util.locale", "pkfx.BOOT", "squarion.Context", "pkfx.Geometrics|Mesh", "Shared.ASyncCurl", "WC-REL21098-CSTS.engine.app", "nqsettings", "network.PIAnalytics", "unigine", "Shared.ItemTree", "engine.sparseTexture", "WC-REL21098-CSTS.engine.gui", "WC-REL21098-CSTS.engine.gui.integration", "WC-REL21098-CSTS.ui.views", "gui", "WC-REL21098-CSTS.game.world"]
+public let knownClasses: Set<String> = [
+    "Shared.ASyncCurl",
+    "Shared.ItemTree",
+    "WC-REL21098-CSTS.engine.app",
+    "WC-REL21098-CSTS.engine.gui",
+    "WC-REL21098-CSTS.engine.gui.integration",
+    "WC-REL21098-CSTS.engine.util",
+    "WC-REL21098-CSTS.engine.util.filesystem",
+    "WC-REL21098-CSTS.engine.util.locale",
+    "WC-REL21098-CSTS.game",
+    "WC-REL21098-CSTS.game.world",
+    "WC-REL21098-CSTS.ui.views",
+    "anticheat.thread",
+    "engine.sparseTexture",
+    "gui",
+    "network.PIAnalytics",
+    "nqsettings",
+    "pkfx.BOOT",
+    "pkfx.Geometrics|Mesh",
+    "pkfx.Geometrics|MeshDeformers",
+    "pkfx.Kernel|CapsCpu",
+    "pkfx.Kernel|CapsMem",
+    "pkfx.Kernel|Plugins",
+    "pkfx.Kernel|Scheduler",
+    "pkfx.Particles",
+    "squarion.Context",
+    "squarion.sys.threading",
+    "unigine",
+    "voxel.textures"
+]
 
-struct LogEntry {
-    let date: Date
-    let millis: Int
-    let sequence: Int
-    let logger: String
-    let level: String
-    let `class`: String
-    let method: String
-    let thread: Int
-    let message: String
+public struct LogEntry: Codable {
+    static let formatter = ISO8601DateFormatter()
+    public let date: Date
+    public let millis: Int
+    public let sequence: Int
+    public let logger: String
+    public let level: String
+    public let `class`: String
+    public let method: String
+    public let thread: Int
+    public let message: String
     
     init(_ values: [String:String]) {
-        date = Date()
-        millis =  values[asInt: "millis"]!
+        date = Self.formatter.date(from: values["date"]!)!
+        millis = values[asInt: "millis"] ?? Int(0)
         sequence = 0
         logger = values["logger"] ?? ""
         level = values["level"] ?? ""
@@ -32,33 +62,38 @@ struct LogEntry {
     }
 }
 
-struct LogFile {
-    var entries: [LogEntry]
+public struct LogFile: Codable {
+    public var entries: [LogEntry]
 }
 
-class LogParser: NSObject, XMLParserDelegate {
+public class LogParser: NSObject {
     var entries: [LogEntry] = []
     var values: [String: String] = [:]
     var value: String = ""
     var valueName: String = ""
     
-    func parse(url: URL) -> LogFile {
+    public func parse(url: URL) -> LogFile {
         entries.removeAll()
 
+        print("Loading")
         var source = "<xml>"
         if let string = try? String(contentsOf: url) {
             source += string
         }
         source += "</xml>"
 
+        print("Parsing")
         let parser = XMLParser(data: source.data(using: .utf8)!)
         parser.delegate = self
         parser.parse()
-        
+
+        print("Done")
         return LogFile(entries: entries)
     }
-    
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+}
+
+extension LogParser: XMLParserDelegate {
+    public func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
         if elementName == "record" {
             values = [:]
         } else {
@@ -67,11 +102,11 @@ class LogParser: NSObject, XMLParserDelegate {
         }
     }
     
-    func parser(_ parser: XMLParser, foundCharacters string: String) {
+    public func parser(_ parser: XMLParser, foundCharacters string: String) {
         value += string
     }
     
-    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+    public func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         if elementName == "record" {
             let entry = LogEntry(values)
             entries.append(entry)
