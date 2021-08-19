@@ -6,13 +6,15 @@
 import Coercion
 import Foundation
 
+let classes = ["pkfx.Kernel|CapsCpu", "WC-REL21098-CSTS.engine.util", "squarion.sys.threading", "pkfx.Geometrics|MeshDeformers", "anticheat.thread", "pkfx.Kernel|Scheduler", "pkfx.Particles", "voxel.textures", "pkfx.Kernel|Plugins", "WC-REL21098-CSTS.engine.util.filesystem", "WC-REL21098-CSTS.game", "pkfx.Kernel|CapsMem", "WC-REL21098-CSTS.engine.util.locale", "pkfx.BOOT", "squarion.Context", "pkfx.Geometrics|Mesh", "Shared.ASyncCurl", "WC-REL21098-CSTS.engine.app", "nqsettings", "network.PIAnalytics", "unigine", "Shared.ItemTree", "engine.sparseTexture", "WC-REL21098-CSTS.engine.gui", "WC-REL21098-CSTS.engine.gui.integration", "WC-REL21098-CSTS.ui.views", "gui", "WC-REL21098-CSTS.game.world"]
+
 struct LogEntry {
     let date: Date
     let millis: Int
     let sequence: Int
     let logger: String
     let level: String
-    let klass: String
+    let `class`: String
     let method: String
     let thread: Int
     let message: String
@@ -23,7 +25,7 @@ struct LogEntry {
         sequence = 0
         logger = values["logger"] ?? ""
         level = values["level"] ?? ""
-        klass = ""
+        `class` = values["class"] ?? ""
         method = values["method"] ?? ""
         thread = 1
         message = values["message"] ?? ""
