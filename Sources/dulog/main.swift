@@ -21,6 +21,9 @@ if !bigJSON.exists {
     let parser = LogParser()
     let log = parser.parse(url: bigLog)
     
+    print("\(log.entries.count) entries.")
+    
+    print("Encoding file.")
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     let data = try! encoder.encode(log)
@@ -28,9 +31,10 @@ if !bigJSON.exists {
 } else {
     print("Decoding file.")
     let decoder = JSONDecoder()
-    let decoded = try! decoder.decode(LogFile.self, from: try! Data(contentsOf: bigJSON.url))
+    let log = try! decoder.decode(LogFile.self, from: try! Data(contentsOf: bigJSON.url))
     
-    print(decoded.entries.map { $0.message })
+    print("\(log.entries.count) entries.")
+    print(log.entries.map { $0.message })
 }
 
 print("blah")

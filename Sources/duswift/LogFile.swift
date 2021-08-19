@@ -37,6 +37,20 @@ public let knownClasses: Set<String> = [
     "voxel.textures"
 ]
 
+let pattern = """
+<record>
+<date>.*</date>
+<millis>.*</millis>
+<sequence>.*</sequence>
+<logger>.*</logger>
+<level>.*</level>
+<class>.*</class>
+<method>.*</method>
+<thread>.*</thread>
+<message>.*</message>
+</record>
+"""
+
 public struct LogEntry: Codable {
     static let formatter = ISO8601DateFormatter()
     public let date: Date
