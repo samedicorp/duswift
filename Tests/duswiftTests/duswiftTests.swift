@@ -15,13 +15,13 @@ let exampleLog = URL(fileURLWithPath: "/Users/sam/Developer/Projects/duswift/Sou
 let smallLog = URL(fileURLWithPath: "/Users/sam/Dropbox/Games/Dual Universe/Logs/log_2021-08-17_18h51m44s.xml")
 
 final class duswiftTests: XCTestCase {
-//    func testDataParser() {
-//        let sample = "MarketInfo:[marketId = 1662, relativeLocation = RelativeLocation:[constructId = 0, position = Vec3:[-13240359.185984, 55770780.524610, 523150.759589], rotation = Quat:[0.000394, -0.065151, -0.651803, 0.755584]]]"
-//        let parser = LogDataParser()
-//        parser.parse(sample)
-//    }
+    func testDataParser() {
+        let sample = "MarketInfo:[marketId = 1662, relativeLocation = RelativeLocation:[constructId = 0, position = Vec3:[-13240359.185984, 55770780.524610, 523150.759589], rotation = Quat:[0.000394, -0.065151, -0.651803, 0.755584]]]"
+        let parser = LogDataParser()
+        let parsed = parser.parse(sample)
+    }
     
-    func testProperties() {
+    func testPropertiesParser() {
         let parser = LogDataParser()
         
         XCTAssertEqual(parser.parseValue("1") as? Int, 1)
@@ -29,7 +29,8 @@ final class duswiftTests: XCTestCase {
         
         let value = parser.parseValue("Class:[name = Blah, id = 123]") as! [String:Any]
         print(value)
-        XCTAssertEqual(value["kind"] as? String.SubSequence, "Class")
-        XCTAssertEqual(value["name"] as? String.SubSequence, "Blah")
+        XCTAssertEqual(value["kind"] as? String, "Class")
+        XCTAssertEqual(value["name"] as? String, "Blah")
+        XCTAssertEqual(value["id"] as? Int, 123)
     }
 }

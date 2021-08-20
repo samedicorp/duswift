@@ -10,10 +10,11 @@ import Foundation
 struct LogDataParser {
     func parseValue(_ string: String.SubSequence) -> Any? {
         guard let index = string.firstIndex(of: ":") else {
-            if let int = Int(string) {
+            let trimmed = string.trimmingCharacters(in: .whitespaces)
+            if let int = Int(trimmed) {
                 return int
             } else {
-                return String(string)
+                return trimmed
             }
         }
         
@@ -24,12 +25,12 @@ struct LogDataParser {
         guard let index = string.firstIndex(of: "=") else { return nil }
         
         let key = String(string[..<index].trimmingCharacters(in: .whitespaces))
-        let value = string[index...]
+        let value = string[string.index(after: index)...]
         return (key, parseValue(value) ?? "")
     }
     
     func parseObject(kind: String.SubSequence, string: String.SubSequence) -> [String:Any] {
-        var object: [String:Any] = [ "kind" : kind]
+        var object: [String:Any] = [ "kind" : String(kind)]
         
         var nesting = 0
 
@@ -40,7 +41,6 @@ struct LogDataParser {
         assert(string[last] == "]")
 
         start = string.index(after: start)
-        last = string.index(before: last)
 
         var index = start
         while index <= last {
@@ -52,7 +52,7 @@ struct LogDataParser {
             } else if char == "]" {
                 nesting -= 1
             } else if (nesting == 0) && ((char == ",") || index == last) {
-                if let pair = parsePair(string[start ..< index]) {
+                if let pair = parsePair(string[start ..< string.index(before: index)]) {
                     object[pair.0] = pair.1
                     start = index
                 }
