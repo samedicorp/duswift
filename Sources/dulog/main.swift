@@ -27,7 +27,7 @@ struct DULog {
                     addedClasses = true
                 }
                 if count % 10000 == 0 {
-                    print("\(count)...")
+                    print("\(entry.sequence)...")
                 }
             }
             

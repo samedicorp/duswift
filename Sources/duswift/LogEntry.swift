@@ -27,6 +27,7 @@ public struct LogEntry: Codable {
     }
     
     static let formatter = ISO8601DateFormatter()
+    public let line: Int
     public let dateString: String
     public let millis: Int
     public let sequence: Int
@@ -39,18 +40,5 @@ public struct LogEntry: Codable {
     
     public var date: Date {
         Self.formatter.date(from: dateString)!
-    }
-    
-    init(_ values: [String:String]) {
-        dateString = values[asString: "date"] ?? ""
-        millis = values[asInt: "millis"] ?? 0
-        sequence = values[asInt: "sequence"] ?? 0
-        logger = values["logger"] ?? ""
-        
-        level = Level(values[asString: "level"])
-        `class` = values["class"] ?? ""
-        method = values["method"] ?? ""
-        thread = 1
-        message = values["message"] ?? ""
     }
 }

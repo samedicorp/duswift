@@ -18,24 +18,74 @@ public struct LogParser {
         self.url = url
     }
     
-    public func entryStream() -> AsyncStream<LogEntry> {
+    public func entryStream(startingAtLine startLine: Int = 0) -> AsyncStream<LogEntry> {
         return AsyncStream<LogEntry>(LogEntry.self) { continuation in
             Task.detached {
                 do {
-                    var values: [String: String] = [:]
-                    
-                    for try await line in url.lines {
-                        let range = NSRange(location: 0, length: line.count)
+                    var date = ""
+                    var millis = 0
+                    var sequence = 0
+                    var logger = ""
+                    var level = LogEntry.Level.unknown
+                    var `class` = ""
+                    var method = ""
+                    var thread = 0
+                    var message = ""
+                    var buffer = ""
+                    var count = 0
+                    for try await line in url.lines.dropFirst(startLine) {
                         if line == "<record>" {
-                            values = [:]
+                            date = ""
+                            millis = 0
+                            sequence = 0
+                            logger = ""
+                            level = .unknown
+                            `class` = ""
+                            method = ""
+                            thread = 0
+                            message = ""
+                            
                         } else if line == "</record>" {
-                            continuation.yield(LogEntry(values))
-                            values = [:]
-                        } else if let match = re.firstMatch(in: line, options: [], range: range) {
-                            let lineString = String(line)
-                            let name = String(lineString[match.range(at: 1)])
-                            values[name] = String(lineString[match.range(at: 2)])
+                            continuation.yield(
+                                LogEntry(
+                                    line: count,
+                                    dateString: date,
+                                    millis: millis,
+                                    sequence: sequence,
+                                    logger: logger,
+                                    level: level,
+                                    class: `class`,
+                                    method: method,
+                                    thread: thread,
+                                    message: message
+                                )
+                            )
+                        } else {
+                            buffer += line
+                            if buffer.last == ">" {
+                                let range = NSRange(location: 0, length: buffer.count)
+                                if let match = re.firstMatch(in: buffer, options: [], range: range) {
+                                    let key = String(buffer[match.range(at: 1)])
+                                    let value = String(buffer[match.range(at: 2)])
+                                    buffer = ""
+                                    switch key {
+                                        case "date": date = value
+                                        case "millis": millis = Int(value) ?? 0
+                                        case "sequence": sequence = Int(value) ?? 0
+                                        case "logger": logger = value
+                                        case "level": level = LogEntry.Level(value)
+                                        case "class": `class` = value
+                                        case "method": method = value
+                                        case "thread": thread = Int(value) ?? 0
+                                        case "message": message += value
+                                        default:
+                                            print("Unexpected value: \(key) = \(value)")
+                                    }
+                                }
+                            }
                         }
+                        
+                        count += 1
                     }
                 } catch {
                     print("error \(error)")
