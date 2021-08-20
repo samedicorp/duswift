@@ -9,8 +9,13 @@ import Foundation
 
 public protocol LogEntryHandler {
     func handle(_ entry: LogEntry)
+    func finish()
 }
 
+extension LogEntryHandler {
+    func finish() {
+    }
+}
 
 extension NSRegularExpression {
     func captures(in string: String) -> [String]? {
@@ -66,6 +71,10 @@ struct DULog {
             
             if addedClasses {
                 save(classes: classes)
+            }
+            
+            for handler in handlers.values {
+                handler.finish()
             }
             
             print("Done.")
