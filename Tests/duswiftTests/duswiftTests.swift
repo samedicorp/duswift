@@ -19,6 +19,7 @@ final class duswiftTests: XCTestCase {
         let sample = "MarketInfo:[marketId = 1662, relativeLocation = RelativeLocation:[constructId = 0, position = Vec3:[-13240359.185984, 55770780.524610, 523150.759589], rotation = Quat:[0.000394, -0.065151, -0.651803, 0.755584]]]"
         let parser = LogDataParser()
         let parsed = parser.parse(sample)
+        print(parsed)
     }
     
     func testPropertiesParser() {

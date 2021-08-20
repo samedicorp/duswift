@@ -43,67 +43,32 @@ struct LogDataParser {
         start = string.index(after: start)
 
         var index = start
-        while index <= last {
+        while index < string.endIndex {
             let char = string[index]
-            index = string.index(after: index)
-
+            
             if char == "[" {
                 nesting += 1
             } else if char == "]" {
                 nesting -= 1
             } else if (nesting == 0) && ((char == ",") || index == last) {
-                if let pair = parsePair(string[start ..< string.index(before: index)]) {
+                if let pair = parsePair(string[start ..< index]) {
                     object[pair.0] = pair.1
-                    start = index
+                    start = string.index(after: index)
                 }
             }
+
+            index = string.index(after: index)
+        }
+
+        if let pair = parsePair(string[start ..< index]) {
+            object[pair.0] = pair.1
+            start = index
         }
 
         return object
     }
     
-    func parse(_ string: String) -> [String:Any] {
-        var parsed: [String:Any] = [:]
-        var start = string.startIndex
-        var index = start
-        
-        var name: String.SubSequence?
-        while index < string.endIndex {
-            let char = string[index]
-            if char == ":" {
-                name = string[start ..< index]
-                index = string.index(after: index)
-                break
-            } else {
-                index = string.index(after: index)
-            }
-        }
-
-        if let name = name {
-            var value: String.SubSequence?
-            var nesting = 0
-            start = index
-            while index < string.endIndex {
-                let char = string[index]
-                index = string.index(after: index)
-
-                if char == "[" {
-                    nesting += 1
-                } else if char == "]" {
-                    nesting -= 1
-                } else if (char == ",") && (nesting == 0)  {
-                    value = string[start ..< index]
-                    break
-                }
-            }
-            
-            if value == nil {
-                value = string[start ..< index]
-            }
-            
-            print("\(name): \(value!)")
-        }
-        
-        return parsed
+    func parse(_ string: String) -> Any? {
+        return parseValue(string[string.startIndex..<string.endIndex])
     }
 }
