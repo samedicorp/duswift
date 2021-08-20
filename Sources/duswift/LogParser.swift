@@ -10,11 +10,11 @@ public struct LogParser {
     let url: URL
     let re = try! NSRegularExpression(pattern: "<(.*?)>(.*)</\\1>", options: .allowCommentsAndWhitespace)
 
-    init(url: URL) {
+    public init(url: URL) {
         self.url = url
     }
     
-    func entryStream() -> AsyncStream<LogEntry> {
+    public func entryStream() -> AsyncStream<LogEntry> {
         return AsyncStream<LogEntry>(LogEntry.self) { continuation in
             Task.detached {
                 do {
