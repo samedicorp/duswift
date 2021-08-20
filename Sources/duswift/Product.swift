@@ -22,3 +22,18 @@ public struct Product: Codable {
         self.schematic = productQuantity.id
     }
 }
+
+
+public struct FullProduct: Codable {
+    public let name: String
+    public let schematic: Int?
+    public let mass: Double?
+    public let volume: Double?
+    
+    public init(product: Product, recipe: DUMap.Recipe?) {
+        self.name = product.name
+        self.schematic = product.schematic
+        self.mass = recipe?.mass
+        self.volume = recipe?.volume
+    }
+}

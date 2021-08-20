@@ -41,12 +41,14 @@ public struct JSONSchematic: Codable {
         items.append("time = \(time)")
 
         if ingredients.count > 0 {
-            let formatted = ingredients.map({ "[\"\($0.type)\"] = \($0.quantity)"}).joined(separator: ", ")
+            let sortedIngredients = ingredients.sorted(by: {$0.name < $1.name })
+            let formatted = sortedIngredients.map({ "[\"\($0.type)\"] = \($0.quantity)"}).joined(separator: ", ")
             items.append("input = {\(formatted)}")
         }
         
         if products.count > 0 {
-            let formatted = products.map({ "[\"\($0.type)\"] = \($0.quantity)"}).joined(separator: ", ")
+            let sortedProducts = products.sorted(by: { $0.name < $1.name })
+            let formatted = sortedProducts.map({ "[\"\($0.type)\"] = \($0.quantity)"}).joined(separator: ", ")
             if products.count > 1, let main = products.first?.type {
                 items.append("makes = \"\(main)\"")
             }
