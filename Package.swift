@@ -25,6 +25,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/elegantchaos/Coercion.git", from: "1.1.2"),
         .package(url: "https://github.com/elegantchaos/ElegantStrings.git", from: "1.0.2"),
+        .package(url: "https://github.com/elegantchaos/Expressions.git", from: "1.1.1"),
         .package(url: "https://github.com/elegantchaos/Files.git", from: "1.2.0"),
         .package(url: "https://github.com/elegantchaos/XCTestExtensions.git", from: "1.4.2")
     ],
@@ -33,7 +34,8 @@ let package = Package(
             name: "dulog",
             dependencies: [
                 "duswift",
-                .product(name: "Files", package: "Files")
+                .product(name: "Expressions", package: "Expressions"),
+                .product(name: "Files", package: "Files"),
             ]
         ),
         .target(

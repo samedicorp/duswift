@@ -4,7 +4,13 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import duswift
+import Expressions
 import Foundation
+
+public protocol LogEntryHandler {
+    func handle(_ entry: LogEntry)
+}
+
 
 extension NSRegularExpression {
     func captures(in string: String) -> [String]? {
@@ -21,7 +27,6 @@ extension NSRegularExpression {
 
 
 struct DULog {
-    let loginPattern = try! NSRegularExpression(pattern: "playerId = (\\d+), username = (\\w+)")
     
     func run() {
         print("Parsing file.")
@@ -29,9 +34,9 @@ struct DULog {
         let url = base.appendingPathComponent("/Extras/Logs/large.xml")
         let parser = LogParser(url: url)
 
-        let handlers: [String:(LogEntry) -> Void] = [
-            "game.login": handleLogin,
-            "network.PIPublication": handlePublication
+        let handlers: [String:LogEntryHandler] = [
+            "game.login": LoginHandler(),
+            "network.PIPublication": PublicationHandler()
         ]
         
         Task {
@@ -52,7 +57,7 @@ struct DULog {
 //                }
                 
                 if let handler = handlers[entry.class] {
-                    handler(entry)
+                    handler.handle(entry)
                 } else if entry.message.localizedCaseInsensitiveContains("Samedi") {
                     print("\(entry)\n\n")
                 }
@@ -69,21 +74,6 @@ struct DULog {
         dispatchMain()
     }
     
-    func handleLogin(_ entry: LogEntry) {
-        if let match = loginPattern.captures(in: entry.message) {
-            print("Login \(match[1]) (\(match[0])).")
-        }
-    }
-    
-    func handlePublication(_ entry: LogEntry) {
-        if entry.message.starts(with: "did receive ConstructInfo") {
-            handleConstructInfo(entry)
-        }
-    }
-    
-    func handleConstructInfo(_ entry: LogEntry) {
-        print(entry)
-    }
     func save(classes: Set<String>) {
         do {
             print("Saving classes index.")
