@@ -42,3 +42,9 @@ public struct LogEntry: Codable {
         Self.formatter.date(from: dateString)!
     }
 }
+
+extension LogEntry: CustomStringConvertible {
+    public var description: String {
+        "#\(sequence) \(date), \(level), \(`class`)\n\(message)"
+    }
+}
