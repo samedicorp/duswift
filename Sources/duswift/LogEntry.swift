@@ -6,12 +6,38 @@
 import Foundation
 
 public struct LogEntry: Codable {
+    public enum Level: String, Codable {
+        case unknown
+        case debug
+        case info
+        case warning
+        case error
+
+        init(_ string: String?) {
+            self = Self.level(string)
+        }
+
+        static func level(_ string: String?) -> Level {
+            if let string = string?.lowercased() {
+                if let level = Level(rawValue: string) {
+                    return level
+                } else {
+                    print("Unknown level \(string)")
+                }
+            } else {
+                print("Missing level")
+            }
+            
+            return .unknown
+        }
+    }
+    
     static let formatter = ISO8601DateFormatter()
     public let date: Date
     public let millis: Int
     public let sequence: Int
     public let logger: String
-    public let level: String
+    public let level: Level
     public let `class`: String
     public let method: String
     public let thread: Int
@@ -22,7 +48,8 @@ public struct LogEntry: Codable {
         millis = values[asInt: "millis"] ?? Int(0)
         sequence = 0
         logger = values["logger"] ?? ""
-        level = values["level"] ?? ""
+        
+        level = Level(values[asString: "level"])
         `class` = values["class"] ?? ""
         method = values["method"] ?? ""
         thread = 1
