@@ -24,7 +24,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/elegantchaos/Coercion.git", from: "1.1.2"),
-        .package(url: "https://github.com/elegantchaos/ElegantStrings.git", from: "1.0.1"),
+        .package(url: "https://github.com/elegantchaos/ElegantStrings.git", from: "1.0.2"),
         .package(url: "https://github.com/elegantchaos/Files.git", from: "1.2.0"),
         .package(url: "https://github.com/elegantchaos/XCTestExtensions.git", from: "1.4.2")
     ],
