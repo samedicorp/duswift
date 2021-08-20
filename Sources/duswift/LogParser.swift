@@ -7,9 +7,13 @@ import ElegantStrings
 import Foundation
 
 public struct LogParser {
-    let url: URL
-    let re = try! NSRegularExpression(pattern: "<(.*?)>(.*)</\\1>", options: .allowCommentsAndWhitespace)
+    public static let knownClasses = Self.loadClasses()
 
+    public static let baseURL = URL(fileURLWithPath: #file).deletingLastPathComponent().appendingPathComponent("../..")
+
+    fileprivate let url: URL
+    fileprivate let re = try! NSRegularExpression(pattern: "<(.*?)>(.*)</\\1>", options: .allowCommentsAndWhitespace)
+    
     public init(url: URL) {
         self.url = url
     }
@@ -40,5 +44,12 @@ public struct LogParser {
                 continuation.finish()
             }
         }
+    }
+    
+    fileprivate static func loadClasses() -> Set<String> {
+        let decoder = JSONDecoder()
+        let url = Bundle.module.url(forResource: "classes", withExtension: "json")!
+        let list = try? decoder.decode([String].self, from: Data(contentsOf: url))
+        return Set(list ?? [])
     }
 }

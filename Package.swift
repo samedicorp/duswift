@@ -44,6 +44,7 @@ let package = Package(
                 .product(name: "Files", package: "Files")
             ],
             resources: [
+                .copy("Resources/classes.json"),
                 .copy("Resources/Examples")
             ]
         ),
