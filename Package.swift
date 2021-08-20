@@ -42,6 +42,9 @@ let package = Package(
                 .product(name: "Coercion", package: "Coercion"),
                 .product(name: "ElegantStrings", package: "ElegantStrings"),
                 .product(name: "Files", package: "Files")
+            ],
+            resources: [
+                .copy("Resources/Examples")
             ]
         ),
         .testTarget(
