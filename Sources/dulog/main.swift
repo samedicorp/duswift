@@ -41,7 +41,9 @@ struct DULog {
 
         let handlers: [String:LogEntryHandler] = [
             "game.login": LoginHandler(),
-            "network.PIPublication": PublicationHandler()
+            "network.PIPublication": PublicationHandler(),
+            "WC-REL21098-CSTS.game.market": MarketHandler(),
+            "WC-REL21098-CSTS.ui.views.hud.panels": MarketHandler()
         ]
         
         Task {
@@ -63,7 +65,7 @@ struct DULog {
                 
                 if let handler = handlers[entry.class] {
                     handler.handle(entry)
-                } else if entry.message.localizedCaseInsensitiveContains("Samedi") {
+                } else if entry.message.localizedCaseInsensitiveContains("market") {
                     print("\(entry)\n\n")
                 }
 
