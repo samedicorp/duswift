@@ -30,7 +30,7 @@ let package = Package(
         .package(url: "https://github.com/elegantchaos/XCTestExtensions.git", from: "1.4.2")
     ],
     targets: [
-        .target(
+        .executableTarget(
             name: "dulog",
             dependencies: [
                 "duswift",
