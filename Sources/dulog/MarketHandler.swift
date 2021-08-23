@@ -9,7 +9,14 @@ import Foundation
 
 class MarketHandler: LogEntryHandler {
     func handle(_ entry: LogEntry) {
-        if entry.message.starts(with: "MarketList") {
+        let message = entry.message
+        if message.starts(with: "MarketList") {
+            if let index = message.firstIndex(of: ":") {
+                let string = String(message[message.index(after: index)...])
+                let parser = LogDataParser()
+                let decoded = parser.parse(string)
+                print(decoded)
+            }
             print(entry)
         }
     }

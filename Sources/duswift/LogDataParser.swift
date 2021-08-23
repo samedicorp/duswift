@@ -7,68 +7,127 @@
 
 import Foundation
 
-struct LogDataParser {
-    func parseValue(_ string: String.SubSequence) -> Any? {
-        guard let index = string.firstIndex(of: ":") else {
-            let trimmed = string.trimmingCharacters(in: .whitespaces)
-            if let int = Int(trimmed) {
-                return int
-            } else {
-                return trimmed
-            }
-        }
-        
-        return parseObject(kind: string[..<index], string: string[string.index(after: index)...])
-    }
-
-    func parsePair(_ string: String.SubSequence) -> (String, Any)? {
-        guard let index = string.firstIndex(of: "=") else { return nil }
-        
-        let key = String(string[..<index].trimmingCharacters(in: .whitespaces))
-        let value = string[string.index(after: index)...]
-        return (key, parseValue(value) ?? "")
+public struct LogDataParser {
+    let objectPattern = try! NSRegularExpression(pattern: #"^(\w+):\[(.*)\]"#, options: [])
+    let datePattern = try! NSRegularExpression(pattern: #"^@\((\d+)\) (\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d)"#, options: [])
+    let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return formatter
+    }()
+    
+    public init() {
     }
     
-    func parseObject(kind: String.SubSequence, string: String.SubSequence) -> [String:Any] {
-        var object: [String:Any] = [ "kind" : String(kind)]
+    func parseValue(_ string: String.SubSequence) -> Any? {
+        let trimmed = string.trimmingCharacters(in: .whitespaces)
+        let range = NSRange(location: 0, length: trimmed.count)
+        if let match = objectPattern.firstMatch(in: trimmed, options: [], range: range) {
+            let kind = trimmed[match.range(at: 1)]
+            let values = trimmed[match.range(at: 2)]
+            return parseObject(kind: kind, values: values)
+
+        } else if (trimmed.first == "[") && (trimmed.last == "]") {
+            return parseList(values: trimmed[trimmed.index(after: trimmed.startIndex)..<trimmed.endIndex])
+            
+        } else if let match = datePattern.firstMatch(in: trimmed, options: [], range: range) {
+            let dateString = String(trimmed[match.range(at: 2)])
+            let date = dateFormatter.date(from: dateString)
+            return date
+            
+        } else if let int = Int(trimmed) {
+            return int
+        } else {
+            return trimmed
+        }
+    }
+
+    func parsePair(_ string: String.SubSequence, index: Int) -> (String, Any)? {
+        if let index = string.firstIndex(of: "=") {
+            let key = String(string[..<index].trimmingCharacters(in: .whitespaces))
+            print("pair: \(key)")
+            let value = string[string.index(after: index)...]
+            return (key, parseValue(value) ?? "")
+        } else {
+            print("item \(index)")
+            return ("\(index)", parseValue(string) ?? "")
+        }
+        
+    }
+
+    func parseList(values: String.SubSequence) -> [Any] {
+        print("list")
+
+        var list: [Any] = []
         
         var nesting = 0
 
-        var start = string.startIndex
-        var last = string.index(before: string.endIndex)
-
-        assert(string[start] == "[")
-        assert(string[last] == "]")
-
-        start = string.index(after: start)
-
+        var start = values.startIndex
         var index = start
-        while index < string.endIndex {
-            let char = string[index]
+        while index < values.endIndex {
+            let char = values[index]
             
             if char == "[" {
                 nesting += 1
             } else if char == "]" {
                 nesting -= 1
-            } else if (nesting == 0) && ((char == ",") || index == last) {
-                if let pair = parsePair(string[start ..< index]) {
-                    object[pair.0] = pair.1
-                    start = string.index(after: index)
+            } else if (nesting == 0) && (char == ",") {
+                if let value = parseValue(values[start ..< index]) {
+                    list.append(value)
                 }
             }
 
-            index = string.index(after: index)
+            index = values.index(after: index)
         }
 
-        if let pair = parsePair(string[start ..< index]) {
+        if let value = parseValue(values[start ..< index]) {
+            list.append(value)
+        }
+
+        return list
+    }
+
+    func parseObject(kind: String.SubSequence, values: String.SubSequence) -> [String:Any] {
+        print("object: \(kind)")
+
+        var object: [String:Any] = [ "kind" : String(kind)]
+        
+        var nesting = 0
+
+        var start = values.startIndex
+        var index = start
+        while index < values.endIndex {
+            let char = values[index]
+            
+            if char == "[" {
+                nesting += 1
+            } else if char == "]" {
+                nesting -= 1
+            } else if (nesting == 0) && (char == ",") {
+                var end = index
+//                let previousIndex = string.index(before: index)
+//                if char == "," && string[previousIndex] == "]" {
+//                    end = previousIndex
+//                }
+                if let pair = parsePair(values[start ..< end], index: object.count) {
+                    object[pair.0] = pair.1
+                    start = values.index(after: index)
+                }
+            }
+
+            index = values.index(after: index)
+        }
+
+        if let pair = parsePair(values[start ..< index], index: object.count) {
             object[pair.0] = pair.1
             start = index
         }
 
         return object
     }
-    
-    func parse(_ string: String) -> Any? {
-        return parseValue(string[string.startIndex..<string.endIndex])
+
+    public func parse(_ string: String) -> Any? {
+        var cleaned = string.replacingOccurrences(of: ", ]", with: "], ")
+        return parseValue(cleaned[cleaned.startIndex..<cleaned.endIndex])
     }
 }
