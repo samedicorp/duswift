@@ -19,13 +19,18 @@ public struct LogDataParser {
     public init() {
     }
     
-    func parseValue(_ string: String.SubSequence) -> Any? {
+    func parseValue(_ string: String.SubSequence, skipEmptyString: Bool = false) -> Any? {
         let trimmed = string.trimmingCharacters(in: .whitespaces)
         let range = NSRange(location: 0, length: trimmed.count)
         if let match = objectPattern.firstMatch(in: trimmed, options: [], range: range) {
             let kind = trimmed[match.range(at: 1)]
             let values = trimmed[match.range(at: 2)]
-            return parseObject(kind: kind, values: values)
+            if values.contains("=") {
+                return parseObject(kind: kind, values: values)
+            } else {
+                let list = parseList(values: values)
+                return ["kind": kind, "values": list]
+            }
 
         } else if (trimmed.first == "[") && (trimmed.last == "]") {
             return parseList(values: trimmed[trimmed.index(after: trimmed.startIndex)..<trimmed.endIndex])
@@ -37,27 +42,26 @@ public struct LogDataParser {
             
         } else if let int = Int(trimmed) {
             return int
+        } else if trimmed.isEmpty && skipEmptyString {
+            return nil
         } else {
             return trimmed
         }
     }
 
-    func parsePair(_ string: String.SubSequence, index: Int) -> (String, Any)? {
+    func parsePair(_ string: String.SubSequence, index: Int, skipEmptyString: Bool = false) -> (String, Any)? {
         if let index = string.firstIndex(of: "=") {
             let key = String(string[..<index].trimmingCharacters(in: .whitespaces))
-            print("pair: \(key)")
             let value = string[string.index(after: index)...]
             return (key, parseValue(value) ?? "")
+        } else if let value = parseValue(string, skipEmptyString: skipEmptyString) {
+            return ("#\(index)", value)
         } else {
-            print("item \(index)")
-            return ("\(index)", parseValue(string) ?? "")
+            return nil
         }
-        
     }
 
     func parseList(values: String.SubSequence) -> [Any] {
-        print("list")
-
         var list: [Any] = []
         
         var nesting = 0
@@ -80,7 +84,7 @@ public struct LogDataParser {
             index = values.index(after: index)
         }
 
-        if let value = parseValue(values[start ..< index]) {
+        if let value = parseValue(values[start ..< index], skipEmptyString: true) {
             list.append(value)
         }
 
@@ -118,7 +122,7 @@ public struct LogDataParser {
             index = values.index(after: index)
         }
 
-        if let pair = parsePair(values[start ..< index], index: object.count) {
+        if let pair = parsePair(values[start ..< index], index: object.count, skipEmptyString: true) {
             object[pair.0] = pair.1
             start = index
         }
