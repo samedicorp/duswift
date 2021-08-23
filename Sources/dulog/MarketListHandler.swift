@@ -3,11 +3,12 @@
 //  All code (c) 2021 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+import Coercion
 import duswift
 import Expressions
 import Foundation
 
-class MarketHandler: LogEntryHandler {
+class MarketListHandler: LogEntryHandler {
     func handle(_ entry: LogEntry) {
         let message = entry.message
         if message.starts(with: "MarketList") {
@@ -15,9 +16,20 @@ class MarketHandler: LogEntryHandler {
                 let string = String(message[message.index(after: index)...])
                 let parser = LogDataParser()
                 let decoded = parser.parse(string)
-                print(decoded)
+                if let object = decoded as? [String:Any], object[asString: "kind"] == "MarketList" {
+                    handleMarketList(object)
+                }
             }
-            print(entry)
+        }
+        
+        func handleMarketList(_ list: [String:Any]) {
+            if let markets = list["markets"] as? [[String:Any]] {
+                for market in markets {
+                    print(market[asString: "name"]!)
+                    print(market)
+                }
+            }
         }
     }
-}
+    
+    

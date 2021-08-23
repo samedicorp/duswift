@@ -43,7 +43,7 @@ struct DULog {
             "game.login": LoginHandler(),
             "network.PIPublication": PublicationHandler(),
             "WC-REL21098-CSTS.game.market": MarketHandler(),
-            "WC-REL21098-CSTS.ui.views.hud.panels": MarketHandler()
+            "WC-REL21098-CSTS.ui.views.hud.panels": MarketOrdersHandler()
         ]
         
         Task {

@@ -78,6 +78,7 @@ public struct LogDataParser {
             } else if (nesting == 0) && (char == ",") {
                 if let value = parseValue(values[start ..< index]) {
                     list.append(value)
+                    start = values.index(after: index)
                 }
             }
 
@@ -92,10 +93,7 @@ public struct LogDataParser {
     }
 
     func parseObject(kind: String.SubSequence, values: String.SubSequence) -> [String:Any] {
-        print("object: \(kind)")
-
         var object: [String:Any] = [ "kind" : String(kind)]
-        
         var nesting = 0
 
         var start = values.startIndex
@@ -108,12 +106,7 @@ public struct LogDataParser {
             } else if char == "]" {
                 nesting -= 1
             } else if (nesting == 0) && (char == ",") {
-                var end = index
-//                let previousIndex = string.index(before: index)
-//                if char == "," && string[previousIndex] == "]" {
-//                    end = previousIndex
-//                }
-                if let pair = parsePair(values[start ..< end], index: object.count) {
+                if let pair = parsePair(values[start ..< index], index: object.count) {
                     object[pair.0] = pair.1
                     start = values.index(after: index)
                 }
