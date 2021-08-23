@@ -24,7 +24,7 @@ class PublicationHandler: LogEntryHandler {
         var name = ""
     }
 
-    func handle(_ entry: LogEntry) {
+    func handle(_ entry: LogEntry, processor: LogProcessor) {
         if entry.message.starts(with: "did receive ConstructInfo") {
             handleConstructInfo(entry)
         }
@@ -43,7 +43,7 @@ class PublicationHandler: LogEntryHandler {
         }
     }
     
-    func finish() {
+    func finish(processor: LogProcessor) {
         if constructs.count > 0 {
             print("Found constructs:")
             for construct in constructs.values.sorted(by: { $0.sort < $1.sort  }) {

@@ -15,7 +15,7 @@ struct LoginHandler: LogEntryHandler {
         var id = ""
     }
 
-    func handle(_ entry: LogEntry) {
+    func handle(_ entry: LogEntry, processor: LogProcessor) {
         if let match: Login = pattern.firstMatch(in: entry.message, capturing: [\.name: 2, \.id: 1]) {
             print("Login \(match.name) (\(match.id)).")
         }

@@ -34,7 +34,6 @@ let package = Package(
             name: "dulog",
             dependencies: [
                 "duswift",
-                .product(name: "Expressions", package: "Expressions"),
                 .product(name: "Files", package: "Files"),
             ]
         ),
@@ -43,6 +42,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Coercion", package: "Coercion"),
                 .product(name: "ElegantStrings", package: "ElegantStrings"),
+                .product(name: "Expressions", package: "Expressions"),
                 .product(name: "Files", package: "Files")
             ],
             resources: [
