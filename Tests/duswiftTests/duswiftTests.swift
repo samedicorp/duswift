@@ -17,13 +17,13 @@ let smallLog = URL(fileURLWithPath: "/Users/sam/Dropbox/Games/Dual Universe/Logs
 final class duswiftTests: XCTestCase {
     func testDataParser() {
         let sample = "MarketInfo:[marketId = 1662, relativeLocation = RelativeLocation:[constructId = 0, position = Vec3:[-13240359.185984, 55770780.524610, 523150.759589], rotation = Quat:[0.000394, -0.065151, -0.651803, 0.755584]]]"
-        let parser = LogDataParser()
+        let parser = LogDataParser(classes: ["MarketInfo": MarketInfo.self])
         let parsed = parser.parse(sample)
         print(parsed)
     }
     
     func testPropertiesParser() {
-        let parser = LogDataParser()
+        let parser = LogDataParser(classes: [:])
         
         XCTAssertEqual(parser.parseValue("1") as? Int, 1)
         XCTAssertEqual(parser.parseValue("Test") as? String, "Test")

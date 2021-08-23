@@ -14,8 +14,7 @@ class MarketOrdersHandler: LogEntryHandler {
         if message.starts(with: "onUpdateMarketItemOrders") {
             if let index = message.firstIndex(of: ":") {
                 let string = String(message[message.index(after: index)...])
-                let parser = LogDataParser()
-                let decoded = parser.parse(string)
+                let decoded = processor.dataParser.parse(string)
                 if let object = decoded as? [String:Any], object[asString: "kind"] == "MarketOrders" {
                     handleMarketOrders(object)
                 }

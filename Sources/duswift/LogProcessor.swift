@@ -20,8 +20,37 @@ extension NSRegularExpression {
 }
 
 
-public struct LogProcessor {
+public class LogProcessor {
+    let dataParser: LogDataParser
+    let handlers: [String:LogEntryHandler]
+    
+    var constructs: [Int:Construct] = [:]
+    var markets: [MarketInfo] = []
+
     public init() {
+        self.dataParser = LogDataParser(classes: [
+            "EntityId": EntityId.self,
+            "MarketInfo": MarketInfo.self,
+            "MarketList": MarketList.self,
+            "Quat": Quat.self,
+            "RelativeLocation": RelativeLocation.self,
+            "Vec3": Vec3.self,
+        ])
+        
+        self.handlers = [
+            "game.login": LoginHandler(),
+            "network.PIPublication": PublicationHandler(),
+            "WC-REL21098-CSTS.game.market": MarketListHandler(),
+            "WC-REL21098-CSTS.ui.views.hud.panels": MarketOrdersHandler()
+        ]
+    }
+    
+    public func append(market: MarketInfo) {
+        markets.append(market)
+    }
+    
+    public func append(construct: Construct) {
+        constructs[construct.id] = construct
     }
     
     public func run() {
@@ -30,12 +59,6 @@ public struct LogProcessor {
         let url = base.appendingPathComponent("/Extras/Logs/large.xml")
         let parser = LogParser(url: url)
 
-        let handlers: [String:LogEntryHandler] = [
-            "game.login": LoginHandler(),
-            "network.PIPublication": PublicationHandler(),
-            "WC-REL21098-CSTS.game.market": MarketListHandler(),
-            "WC-REL21098-CSTS.ui.views.hud.panels": MarketOrdersHandler()
-        ]
         
         Task {
             var classes = LogParser.knownClasses
@@ -65,15 +88,48 @@ public struct LogProcessor {
             if addedClasses {
                 save(classes: classes)
             }
-            
-            for handler in handlers.values {
-                handler.finish(processor: self)
-            }
-            
-            print("Done.")
+
+            finish()
         }
         
         dispatchMain()
+    }
+
+    func exportConstructs() {
+        let url = LogParser.baseURL.appendingPathComponent("Extras/Exported/Constructs/")
+        let encoder = JSONEncoder()
+        for construct in constructs.values {
+            do {
+                let encoded = try encoder.encode(construct)
+                try encoded.write(to: url.appendingPathComponent("\(construct.id).json"))
+            } catch {
+                print("Couldn't save construct \(construct.name)")
+            }
+        }
+    }
+    
+    func exportMarkets() {
+        let url = LogParser.baseURL.appendingPathComponent("Extras/Exported/Markets/")
+        let encoder = JSONEncoder()
+        for market in markets {
+            do {
+                let encoded = try encoder.encode(market)
+                try encoded.write(to: url.appendingPathComponent("\(market.id).json"))
+            } catch {
+                print("Couldn't save market \(market.name)")
+            }
+        }
+    }
+    
+    func finish() {
+    
+        for handler in handlers.values {
+            handler.finish(processor: self)
+        }
+
+        exportConstructs()
+        exportMarkets()
+        print("Done.")
     }
     
     func save(classes: Set<String>) {

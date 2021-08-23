@@ -14,19 +14,11 @@ class MarketListHandler: LogEntryHandler {
         if message.starts(with: "MarketList") {
             if let index = message.firstIndex(of: ":") {
                 let string = String(message[message.index(after: index)...])
-                let parser = LogDataParser()
-                let decoded = parser.parse(string)
-                if let object = decoded as? [String:Any], object[asString: "kind"] == "MarketList" {
-                    handleMarketList(object)
-                }
-            }
-        }
-        
-        func handleMarketList(_ list: [String:Any]) {
-            if let markets = list["markets"] as? [[String:Any]] {
-                for market in markets {
-                    print(market[asString: "name"]!)
-                    print(market)
+                let decoded = processor.dataParser.parse(string)
+                if let markets = decoded as? MarketList {
+                    for market in markets.markets {
+                        processor.append(market: market)
+                    }
                 }
             }
         }

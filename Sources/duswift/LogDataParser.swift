@@ -7,7 +7,12 @@
 
 import Foundation
 
+public protocol DUDataType {
+    init?(duData: [String:Any])
+}
+
 public struct LogDataParser {
+    let classes: [String:DUDataType.Type]
     let objectPattern = try! NSRegularExpression(pattern: #"^(\w+):\[(.*)\]"#, options: [])
     let datePattern = try! NSRegularExpression(pattern: #"^@\((\d+)\) (\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d)"#, options: [])
     let dateFormatter: DateFormatter = {
@@ -16,20 +21,33 @@ public struct LogDataParser {
         return formatter
     }()
     
-    public init() {
+    public init(classes: [String:DUDataType.Type]) {
+        self.classes = classes
+    }
+    
+    func unmapped(kind: String, object: [String:Any]) -> Any {
+        if let mapping = classes[kind] {
+            if let object = mapping.init(duData: object) {
+                return object
+            } else {
+                print("Failed to init mapped type \(kind)")
+            }
+        }
+
+        return UnmappedType(kind: kind, data: object)
     }
     
     func parseValue(_ string: String.SubSequence, skipEmptyString: Bool = false) -> Any? {
         let trimmed = string.trimmingCharacters(in: .whitespaces)
         let range = NSRange(location: 0, length: trimmed.count)
         if let match = objectPattern.firstMatch(in: trimmed, options: [], range: range) {
-            let kind = trimmed[match.range(at: 1)]
+            let kind = String(trimmed[match.range(at: 1)])
             let values = trimmed[match.range(at: 2)]
             if values.contains("=") {
                 return parseObject(kind: kind, values: values)
             } else {
                 let list = parseList(values: values)
-                return ["kind": kind, "values": list]
+                return unmapped(kind: kind, object: ["values": list])
             }
 
         } else if (trimmed.first == "[") && (trimmed.last == "]") {
@@ -42,6 +60,8 @@ public struct LogDataParser {
             
         } else if let int = Int(trimmed) {
             return int
+        } else if let double = Double(trimmed) {
+            return double
         } else if trimmed.isEmpty && skipEmptyString {
             return nil
         } else {
@@ -92,8 +112,8 @@ public struct LogDataParser {
         return list
     }
 
-    func parseObject(kind: String.SubSequence, values: String.SubSequence) -> [String:Any] {
-        var object: [String:Any] = [ "kind" : String(kind)]
+    func parseObject(kind: String, values: String.SubSequence) -> Any {
+        var object: [String:Any] = [:]
         var nesting = 0
 
         var start = values.startIndex
@@ -120,7 +140,7 @@ public struct LogDataParser {
             start = index
         }
 
-        return object
+        return unmapped(kind: kind, object: object)
     }
 
     public func parse(_ string: String) -> Any? {
