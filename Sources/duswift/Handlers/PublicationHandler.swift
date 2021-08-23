@@ -9,26 +9,22 @@ import Foundation
 
 class PublicationHandler: LogEntryHandler {
     let pattern = try! NSRegularExpression(pattern: #"constructId = (\d+).*?name = ([\w \[\]]+)"#)
-
-
+    
+    
     struct ConstructMatch: Constructable {
         var id = ""
         var name = ""
     }
-
-    func handle(_ entry: LogEntry, processor: LogProcessor) {
-        if entry.message.starts(with: "did receive ConstructInfo") {
-            handleConstructInfo(entry, processor: processor)
-        }
-    }
     
-    func handleConstructInfo(_ entry: LogEntry, processor: LogProcessor) {
-        if let match: ConstructMatch = pattern.firstMatch(in: entry.message, capturing: [\.id: 1, \.name: 2]) {
-            let name = match.name.trimmingCharacters(in: .whitespaces)
-            let construct = Construct(id: Int(match.id)!, name: name, sort: name.lowercased(), entry: entry)
-            processor.append(construct: construct)
-        } else {
-            print(entry)
+    func handle(_ entry: LogEntry, processor: LogProcessor) {
+        let message = entry.message
+        if message.starts(with: "did receive ConstructInfo") {
+            let string = String(message[message.index(message.startIndex, offsetBy: 12)...])
+            let decoded = processor.dataParser.parse(string)
+            if let construct = decoded as? ConstructInfo {
+                processor.append(construct: construct)
+            }
         }
     }
 }
+

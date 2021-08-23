@@ -21,8 +21,8 @@ public struct LogDataParser {
         return formatter
     }()
     
-    public init(classes: [String:DUDataType.Type]) {
-        self.classes = classes
+    public init(map: DUTypeMap = DUTypeMap.default) {
+        self.classes = map.classes
     }
     
     func unmapped(kind: String, object: [String:Any]) -> Any {

@@ -11,6 +11,7 @@ public struct MarketInfo: DUDataType, Codable {
     public let creatorName: String
     public let valueTax: Double
     public let dailyStorageFee: Double
+    public let orderFee: Double
     public let capacity: Double
     public let position: Vec3
     public let relativeLocation: RelativeLocation
@@ -24,6 +25,7 @@ public struct MarketInfo: DUDataType, Codable {
             let creatorName = duData[asString: "creatorName"],
             let valueTax = duData[asDouble: "valueTax"],
             let storageFee = duData[asDouble: "dailyStorageFee"],
+            let orderFee = duData[asDouble: "orderFee"],
             let capacity = duData[asDouble: "capacity"],
             let position = duData["position"] as? Vec3,
             let relativeLocation = duData["relativeLocation"] as? RelativeLocation,
@@ -38,6 +40,7 @@ public struct MarketInfo: DUDataType, Codable {
         self.creatorName = creatorName
         self.valueTax = valueTax
         self.dailyStorageFee = storageFee
+        self.orderFee = orderFee
         self.capacity = capacity
         self.position = position
         self.parentConstruct = parentConstruct

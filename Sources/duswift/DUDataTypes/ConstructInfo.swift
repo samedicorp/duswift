@@ -5,20 +5,22 @@
 
 import Foundation
 
-public struct Construct: DUDataType, Codable {
-    public init(id: Int, name: String, sort: String, entry: LogEntry) {
-        self.id = id
-        self.name = name
-        self.sort = sort
-        self.entry = entry
-    }
-    
-    public let id: Int
-    public let name: String
-    public let sort: String
-    public let entry: LogEntry
-    
+public struct ConstructInfo: DUDataType, Codable {
+    public let rData: ConstructRelativeData
+    public let creatorId: EntityId
+    public let kind: String
+
     public init?(duData: [String : Any]) {
-        return nil
+        guard
+            let rData = duData["rData"] as? ConstructRelativeData,
+            let creatorId = duData["creatorId"] as? EntityId,
+            let kind = duData[asString: "kind"]
+        else {
+            return nil
+        }
+        
+        self.rData = rData
+        self.creatorId = creatorId
+        self.kind = kind
     }
 }

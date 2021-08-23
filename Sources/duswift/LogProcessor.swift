@@ -24,19 +24,11 @@ public class LogProcessor {
     let dataParser: LogDataParser
     let handlers: [String:LogEntryHandler]
     
-    var constructs: [Int:Construct] = [:]
-    var markets: [MarketInfo] = []
+    var constructs: [Int:ConstructInfo] = [:]
+    var markets: [Int:MarketInfo] = [:]
 
     public init() {
-        self.dataParser = LogDataParser(classes: [
-            "EntityId": EntityId.self,
-            "MarketInfo": MarketInfo.self,
-            "MarketList": MarketList.self,
-            "Quat": Quat.self,
-            "RelativeLocation": RelativeLocation.self,
-            "Vec3": Vec3.self,
-        ])
-        
+        self.dataParser = LogDataParser(map: DUTypeMap.default)
         self.handlers = [
             "game.login": LoginHandler(),
             "network.PIPublication": PublicationHandler(),
@@ -46,11 +38,11 @@ public class LogProcessor {
     }
     
     public func append(market: MarketInfo) {
-        markets.append(market)
+        markets[market.id] = market
     }
     
-    public func append(construct: Construct) {
-        constructs[construct.id] = construct
+    public func append(construct: ConstructInfo) {
+        constructs[construct.rData.constructId] = construct
     }
     
     public func run() {
@@ -79,8 +71,6 @@ public class LogProcessor {
                 
                 if let handler = handlers[entry.class] {
                     handler.handle(entry, processor: self)
-                } else if entry.message.localizedCaseInsensitiveContains("market") {
-                    print("\(entry)\n\n")
                 }
 
             }
@@ -96,25 +86,29 @@ public class LogProcessor {
     }
 
     func exportConstructs() {
+        print("Exporting constructs")
         let url = LogParser.baseURL.appendingPathComponent("Extras/Exported/Constructs/")
         let encoder = JSONEncoder()
         for construct in constructs.values {
             do {
                 let encoded = try encoder.encode(construct)
-                try encoded.write(to: url.appendingPathComponent("\(construct.id).json"))
+                try encoded.write(to: url.appendingPathComponent("\(construct.rData.constructId).json"))
+                print(construct.rData.name)
             } catch {
-                print("Couldn't save construct \(construct.name)")
+                print("Couldn't save construct \(construct.rData.name)")
             }
         }
     }
     
     func exportMarkets() {
+        print("Exporting markets")
         let url = LogParser.baseURL.appendingPathComponent("Extras/Exported/Markets/")
         let encoder = JSONEncoder()
-        for market in markets {
+        for market in markets.values {
             do {
                 let encoded = try encoder.encode(market)
                 try encoded.write(to: url.appendingPathComponent("\(market.id).json"))
+                print(market.name)
             } catch {
                 print("Couldn't save market \(market.name)")
             }
