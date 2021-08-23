@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MarketList: DUDataType {
+struct MarketList: DUDataType, Codable {
     let markets: [MarketInfo]
     
     init?(duData: [String : Any]) {

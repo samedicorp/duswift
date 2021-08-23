@@ -4,6 +4,7 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import Expressions
+import Files
 import Foundation
 
 extension NSRegularExpression {
@@ -101,16 +102,42 @@ public class LogProcessor {
     }
     
     func exportMarkets() {
-        print("Exporting markets")
-        let url = LogParser.baseURL.appendingPathComponent("Extras/Exported/Markets/")
         let encoder = JSONEncoder()
-        for market in markets.values {
+        let fm = FileManager.default
+        let base = LogParser.baseURL
+        var url = base.appendingPathComponent("../dude/Data/Markets")
+        if fm.fileExists(atURL: url) {
+            print("Exporting market index")
             do {
-                let encoded = try encoder.encode(market)
-                try encoded.write(to: url.appendingPathComponent("\(market.id).json"))
-                print(market.name)
+                let encoded = try encoder.encode(markets)
+                try encoded.write(to: url.appendingPathComponent("markets.json"))
+                
+                var names: [String:Int] = [:]
+                var ids: [Int:String] = [:]
+                for market in markets.values {
+                    names[market.name] = market.id
+                    ids[market.id] = market.name
+                }
+                let encodedNames = try encoder.encode(names)
+                try encodedNames.write(to: url.appendingPathComponent("names.json"))
+                let encodedIds = try encoder.encode(ids)
+                try encodedIds.write(to: url.appendingPathComponent("ids.json"))
             } catch {
-                print("Couldn't save market \(market.name)")
+                print("Couldn't save market index")
+            }
+        }
+
+        url = LogParser.baseURL.appendingPathComponent("Extras/Exported/Markets/")
+        if fm.fileExists(atURL: url) {
+            print("Exporting markets")
+            for market in markets.values {
+                do {
+                    let encoded = try encoder.encode(market)
+                    try encoded.write(to: url.appendingPathComponent("\(market.id).json"))
+                    print(market.name)
+                } catch {
+                    print("Couldn't save market \(market.name)")
+                }
             }
         }
     }

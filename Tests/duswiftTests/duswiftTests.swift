@@ -43,4 +43,9 @@ final class duswiftTests: XCTestCase {
         XCTAssertEqual(construct.rData.name, "Chaos Towers")
         XCTAssertEqual(construct.rData.constructId, 3444585)
     }
+    
+    func testProcessor() {
+        let processor = LogProcessor()
+        processor.run()
+    }
 }
