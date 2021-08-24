@@ -89,3 +89,10 @@ extension JSONSchematic: CustomStringConvertible {
         return summary
     }
 }
+
+public struct CompactSchematic: Codable {
+    let time: Int
+    let level: Int
+    let ingredients: [String:Double]
+    let products: [String:Double]
+}
