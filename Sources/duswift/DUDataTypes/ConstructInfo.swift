@@ -9,7 +9,8 @@ public struct ConstructInfo: DUDataType, Codable {
     public let rData: ConstructRelativeData
     public let creatorId: EntityId
     public let kind: String
-
+    public let planetProperties: PlanetProperties?
+    
     public init?(duData: [String : Any]) {
         guard
             let rData = duData["rData"] as? ConstructRelativeData,
@@ -22,5 +23,11 @@ public struct ConstructInfo: DUDataType, Codable {
         self.rData = rData
         self.creatorId = creatorId
         self.kind = kind
+        self.planetProperties = duData["planetProperties"] as? PlanetProperties
     }
+}
+
+extension ConstructInfo: JSONIndexable {
+    var jsonID: Int { return rData.constructId }
+    var jsonName: String { return rData.name }
 }

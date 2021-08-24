@@ -48,3 +48,8 @@ public struct MarketInfo: DUDataType, Codable {
         self.creatorId = creatorId
     }
 }
+
+extension MarketInfo: JSONIndexable {
+    var jsonID: Int { return id }
+    var jsonName: String { return name }
+}

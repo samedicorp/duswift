@@ -26,7 +26,9 @@ public class LogProcessor {
     let handlers: [String:LogEntryHandler]
     
     var constructs: [Int:ConstructInfo] = [:]
+    var constructKinds: Set<String> = []
     var markets: [Int:MarketInfo] = [:]
+    var planets: Set<Int> = []
 
     public init() {
         self.dataParser = LogDataParser(map: DUTypeMap.default)
@@ -43,7 +45,12 @@ public class LogProcessor {
     }
     
     public func append(construct: ConstructInfo) {
-        constructs[construct.rData.constructId] = construct
+        let id = construct.rData.constructId
+        constructs[id] = construct
+        constructKinds.insert(construct.kind)
+        if construct.kind == "PLANET" {
+            planets.insert(id)
+        }
     }
     
     public func run() {
@@ -88,6 +95,9 @@ public class LogProcessor {
 
     func exportConstructs() {
         print("Exporting constructs")
+        for kind in constructKinds {
+            print(kind)
+        }
         let url = LogParser.baseURL.appendingPathComponent("Extras/Exported/Constructs/")
         let encoder = JSONEncoder()
         for construct in constructs.values {
@@ -101,44 +111,23 @@ public class LogProcessor {
         }
     }
     
-    func exportMarkets() {
-        let encoder = JSONEncoder()
-        let fm = FileManager.default
-        let base = LogParser.baseURL
-        var url = base.appendingPathComponent("../dude/Data/Markets")
-        if fm.fileExists(atURL: url) {
-            print("Exporting market index")
-            do {
-                let encoded = try encoder.encode(markets)
-                try encoded.write(to: url.appendingPathComponent("markets.json"))
-                
-                var names: [String:Int] = [:]
-                var ids: [Int:String] = [:]
-                for market in markets.values {
-                    names[market.name] = market.id
-                    ids[market.id] = market.name
-                }
-                let encodedNames = try encoder.encode(names)
-                try encodedNames.write(to: url.appendingPathComponent("names.json"))
-                let encodedIds = try encoder.encode(ids)
-                try encodedIds.write(to: url.appendingPathComponent("ids.json"))
-            } catch {
-                print("Couldn't save market index")
+    
+    func exportPlanets() {
+        print("Exporting planets")
+        let url = LogParser.baseURL.appendingPathComponent("../dude/Data/Planets")
+        if FileManager.default.fileExists(atURL: url) {
+            var planets: [Int:ConstructInfo] = [:]
+            for id in self.planets {
+                planets[id] = constructs[id]!
             }
+            planets.save(to: url, as: "planets")
         }
-
-        url = LogParser.baseURL.appendingPathComponent("Extras/Exported/Markets/")
-        if fm.fileExists(atURL: url) {
-            print("Exporting markets")
-            for market in markets.values {
-                do {
-                    let encoded = try encoder.encode(market)
-                    try encoded.write(to: url.appendingPathComponent("\(market.id).json"))
-                    print(market.name)
-                } catch {
-                    print("Couldn't save market \(market.name)")
-                }
-            }
+    }
+    
+    func exportMarkets() {
+        let url = LogParser.baseURL.appendingPathComponent("../dude/Data/Markets")
+        if FileManager.default.fileExists(atURL: url) {
+            markets.save(to: url, as: "markets")
         }
     }
     
@@ -149,6 +138,7 @@ public class LogProcessor {
         }
 
         exportConstructs()
+        exportPlanets()
         exportMarkets()
         print("Done.")
     }
