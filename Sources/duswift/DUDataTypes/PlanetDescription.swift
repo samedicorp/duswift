@@ -7,6 +7,14 @@ import Foundation
 
 public struct PlanetDescription: DUDataType, Codable {
     let displayName: String
+    let discoveredBy: String?
+    let type: String?
+    let biosphere: String?
+    let classification: String?
+    let habitabilityClass: String?
+    let information: String?
+    let positionFromSun: Int
+    let numSatellites: Int
     
     public init?(duData: [String : Any]) {
         guard
