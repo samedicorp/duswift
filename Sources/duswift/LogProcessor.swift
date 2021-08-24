@@ -116,9 +116,10 @@ public class LogProcessor {
         print("Exporting planets")
         let url = LogParser.baseURL.appendingPathComponent("../dude/Data/Planets")
         if FileManager.default.fileExists(atURL: url) {
-            var planets: [Int:ConstructInfo] = [:]
+            var planets: [Int:Planet] = [:]
             for id in self.planets {
-                planets[id] = constructs[id]!
+                let construct = constructs[id]!
+                planets[id] = Planet(construct)
             }
             planets.save(to: url, as: "planets")
         }

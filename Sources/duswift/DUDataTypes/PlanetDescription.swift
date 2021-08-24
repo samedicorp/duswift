@@ -13,7 +13,7 @@ public struct PlanetDescription: DUDataType, Codable {
     let classification: String?
     let habitabilityClass: String?
     let information: String?
-    let positionFromSun: Double
+    let positionFromSun: Int
     let numSatellites: Int
     
     public init?(duData: [String : Any]) {
@@ -25,7 +25,7 @@ public struct PlanetDescription: DUDataType, Codable {
             let classification = duData[asString: "classification"],
             let habitabilityClass = duData[asString: "habitabilityClass"],
             let information = duData[asString: "information"],
-            let positionFromSun = duData[asDouble: "positionFromSun"],
+            let positionFromSun = duData[asInt: "positionFromSun"],
             let numSatellites = duData[asInt: "numSatellites"]
         else {
             return nil
