@@ -205,7 +205,7 @@ public class LogProcessor {
     func processLog(_ log: LogStatus) async {
         print("Processing log \(log.name)")
         if log.lastLine > 0 {
-            print("(skipping \(log.lastLine) lines.")
+            print("(skipping \(log.lastLine) lines)")
         }
         
         var count = 0
