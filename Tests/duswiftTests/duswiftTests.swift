@@ -35,6 +35,10 @@ final class duswiftTests: XCTestCase {
         XCTAssertEqual(parsed.data["id"] as? Int, 123)
     }
     
+    func testPlanetParser() {
+        let source = "PlanetProperties:[description = PlanetDescription:[displayName = Madis Moon 1, discoveredBy = , type = , biosphere = , classification = , habitabilityClass = , information = , positionFromSun = 0, numSatellites = 0], ores = [AluminiumOre, CarbonOre, IronOre, LithiumOre, ScandiumOre, SiliconOre, ]isTutorial = false, isSanctuary = false, territoryTileSize = 500, altitudeReferenceRadius = 10000, minGenerationRadiusHint = 0, maxGenerationRadiusHint = 0, seaLevelGravity = 0.785, seaLevelRadius = UNSET, atmosphere = UNSET, clouds = UNSET, ], pipelineURL = https://d1hbjfwzt2gn5p.cloudfront.net/public/voxels/constructs/10/pipeline, pipeline = UNSET, ]"
+    }
+    
     func testConstructParser() {
         let source = "ConstructInfo:[rData = ConstructRelativeData:[constructId = 3444585, parentId = 2, position = Vec3:[212943.406548, 121780.119505, 226436.516359], rotation = Quat:[0.287642, 0.196889, 0.709191, 0.612817], geometry = ConstructGeometry:[size = 128, kind = Octree, voxelLod0 = 3, radius = UNSET, minRadius = UNSET, maxRadius = UNSET, ], name = Chaos Towers, isStatic = true], mutableData = ConstructMutableData:[ownerId = EntityId:[playerId = 0, organizationId = 3706], keyExpiration = @(0) 1970-01-01 00:00:00, pvpTimerExpiration = @(0) 1970-01-01 00:00:00, repairedBy = UNSET, shieldHpRatio = UNSET, meshURL = https://d3im1kyg9fdjv4.cloudfront.net/public/voxels/constructs/3444585/mesh.glb?async=1&version=437, meshObjectURL = https://d3im1kyg9fdjv4.cloudfront.net/public/voxels/constructs/3444585/meshData?async=1&version=437, ], creatorId = EntityId:[playerId = 0, organizationId = 3706], kind = STATIC, blueprintId = UNSET, planetProperties = UNSET, pipelineURL = UNSET, pipeline = UNSET, ]"
         let parser = LogDataParser()
