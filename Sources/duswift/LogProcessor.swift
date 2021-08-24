@@ -35,6 +35,8 @@ public class LogProcessor {
     var recipes: [Int:Recipe] = [:]
     var sellOrders: [Int:OrderList] = [:]
     var buyOrders: [Int:OrderList] = [:]
+    var products: [String:Product] = [:]
+    var schematics: [Int:CompactSchematic] = [:]
     
     let printConstructKinds = false
     var constructKinds: Set<String> = []
@@ -43,6 +45,9 @@ public class LogProcessor {
     var objectTypes: Set<String> = []
     
     let objectPattern = try! NSRegularExpression(pattern: #"(\w+):\["#, options: [])
+    
+    let dudeURL: URL
+    let privateDataURL: URL
     
     public init() {
         self.dataParser = LogDataParser(map: DUTypeMap.default)
@@ -53,8 +58,25 @@ public class LogProcessor {
             "WC-REL21098-CSTS.ui.views.hud.panels": MarketOrdersHandler(),
             "WC-REL21098-CSTS.game.crafting": CraftingHandler()
         ]
+        
+        self.dudeURL = LogParser.baseURL.appendingPathComponent("../dude/Data/")
+        self.privateDataURL = LogParser.baseURL.appendingPathComponent("../dudata/")
     }
     
+    func loadProducts() {
+        let decoder = JSONDecoder()
+        let url = dudeURL.appendingPathComponent("Products/combined.json")
+        let decoded = try! decoder.decode([String:Product].self, from: Data(contentsOf: url))
+        products = decoded
+    }
+
+    func loadSchematics() {
+        let decoder = JSONDecoder()
+        let url = dudeURL.appendingPathComponent("Schematics/compact.json")
+        let decoded = try! decoder.decode([String:CompactSchematic].self, from: Data(contentsOf: url))
+//        schematics = decoded
+    }
+
     public func register(market: MarketInfo) {
         markets[market.id] = market
     }
@@ -79,7 +101,13 @@ public class LogProcessor {
         } else {
             list = orderList(for: order.itemType, in: &sellOrders)
         }
-        list.orders[order.orderId] = order // TODO: if there's a duplicate, pick the newest
+        
+        if let existing = list.orders[order.orderId], existing.updateDate > order.updateDate {
+            // skip if existing entry is newer
+            return
+        }
+
+        list.orders[order.orderId] = order
     }
     
     func orderList(for item: Int, in index: inout [Int:OrderList]) -> OrderList {
@@ -97,7 +125,8 @@ public class LogProcessor {
         let base = URL(fileURLWithPath: #file).deletingLastPathComponent().appendingPathComponent("../..")
         let url = base.appendingPathComponent("/Extras/Logs/large.xml")
         let parser = LogParser(url: url)
-
+        loadProducts()
+        loadSchematics()
         
         Task {
             var classes = LogParser.knownClasses
@@ -114,9 +143,11 @@ public class LogProcessor {
                 
                 if let handler = handlers[entry.class] {
                     handler.handle(entry, processor: self)
-                } else if entry.message.contains("RecipeQueue"){
-                    print(entry)
                 }
+                
+//                if entry.message.contains("ElementId"){
+//                    print(entry)
+//                }
 
                 if printObjectTypes {
                     let message = entry.message
@@ -154,7 +185,7 @@ public class LogProcessor {
     
     
     func exportPlanets() {
-        let url = LogParser.baseURL.appendingPathComponent("../dude/Data/Planets")
+        let url = dudeURL.appendingPathComponent("Planets")
         if FileManager.default.fileExists(atURL: url) {
             var planets: [Int:Planet] = [:]
             for id in self.planets {
@@ -166,14 +197,14 @@ public class LogProcessor {
     }
     
     func exportMarkets() {
-        let url = LogParser.baseURL.appendingPathComponent("../dude/Data/Markets")
+        let url = dudeURL.appendingPathComponent("Markets")
         if FileManager.default.fileExists(atURL: url) {
             markets.save(to: url, as: "markets")
         }
     }
     
     func exportRecipes() {
-        let url = LogParser.baseURL.appendingPathComponent("../dude/Data/Recipes")
+        let url = dudeURL.appendingPathComponent("Recipes")
         if FileManager.default.fileExists(atURL: url) {
             recipes.save(to: url, as: "recipes")
         }
@@ -183,12 +214,16 @@ public class LogProcessor {
         print("Sell Orders")
         for order in sellOrders {
             let product = order.key
-            print("Product \(product):")
-            let listings = order.value.orders.values.sorted(by: { $0.unitPrice.amount < $1.unitPrice.amount })
-            for listing in listings {
-                let market = markets[listing.marketId]?.name ?? ""
-                print("\(listing.ownerName): \(-listing.buyQuantity) @ \(listing.unitPrice.amount), \(market)")
-            }
+            print("Product \(product) \(String(format: "%x", product)):")
+//            print(product & 0x7FFFFFF)
+//            print(product & 0x3FFFFFF)
+//            print(product & 0x1FFFFFF)
+//            print(product & 0x0FFFFFF)
+//            let listings = order.value.orders.values.sorted(by: { $0.unitPrice.amount < $1.unitPrice.amount })
+//            for listing in listings {
+//                let market = markets[listing.marketId]?.name ?? ""
+//                print("\(listing.ownerName): \(-listing.buyQuantity) @ \(listing.unitPrice.amount), \(market)")
+//            }
         }
     }
     
