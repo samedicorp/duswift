@@ -14,18 +14,11 @@ class MarketOrdersHandler: LogEntryHandler {
             if let index = message.firstIndex(of: ":") {
                 let string = String(message[message.index(after: index)...])
                 let decoded = processor.dataParser.parse(string)
-                if let object = decoded as? [String:Any], object[asString: "kind"] == "MarketOrders" {
-                    handleMarketOrders(object)
+                if let orders = decoded as? MarketOrders {
+                    for order in orders.orders {
+                        processor.register(order: order)
+                    }
                 }
-            }
-        }
-    }
-    
-    func handleMarketOrders(_ list: [String:Any]) {
-        if let markets = list["orders"] as? [[String:Any]] {
-            for market in markets {
-                print(market[asString: "ownerName"]!)
-                print(market)
             }
         }
     }

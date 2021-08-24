@@ -22,6 +22,10 @@ extension NSRegularExpression {
 
 
 public class LogProcessor {
+    class OrderList {
+        var orders: [Int:MarketOrder] = [:]
+    }
+    
     let dataParser: LogDataParser
     let handlers: [String:LogEntryHandler]
     
@@ -29,7 +33,9 @@ public class LogProcessor {
     var markets: [Int:MarketInfo] = [:]
     var planets: Set<Int> = []
     var recipes: [Int:Recipe] = [:]
-
+    var sellOrders: [Int:OrderList] = [:]
+    var buyOrders: [Int:OrderList] = [:]
+    
     let printConstructKinds = false
     var constructKinds: Set<String> = []
 
@@ -64,6 +70,26 @@ public class LogProcessor {
     
     public func register(recipe: Recipe) {
         recipes[recipe.id] = recipe
+    }
+    
+    public func register(order: MarketOrder) {
+        let list: OrderList
+        if order.buyQuantity > 0 {
+            list = orderList(for: order.itemType, in: &buyOrders)
+        } else {
+            list = orderList(for: order.itemType, in: &sellOrders)
+        }
+        list.orders[order.orderId] = order // TODO: if there's a duplicate, pick the newest
+    }
+    
+    func orderList(for item: Int, in index: inout [Int:OrderList]) -> OrderList {
+        if let list = index[item] {
+            return list
+        }
+        
+        let list = OrderList()
+        index[item] = list
+        return list
     }
     
     public func run() {
@@ -153,6 +179,19 @@ public class LogProcessor {
         }
     }
     
+    func exportOrders() {
+        print("Sell Orders")
+        for order in sellOrders {
+            let product = order.key
+            print("Product \(product):")
+            let listings = order.value.orders.values.sorted(by: { $0.unitPrice.amount < $1.unitPrice.amount })
+            for listing in listings {
+                let market = markets[listing.marketId]?.name ?? ""
+                print("\(listing.ownerName): \(-listing.buyQuantity) @ \(listing.unitPrice.amount), \(market)")
+            }
+        }
+    }
+    
     func finish() -> Never {
     
         for handler in handlers.values {
@@ -177,6 +216,7 @@ public class LogProcessor {
         exportPlanets()
         exportMarkets()
         exportRecipes()
+        exportOrders()
 
         print("Done.")
         exit(0)
