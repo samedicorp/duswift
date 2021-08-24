@@ -310,8 +310,8 @@ public class LogProcessor {
             }
         }
         
-        sellOrders.save(to: ordersURL, as: "sell")
-        buyOrders.save(to: ordersURL, as: "buy")
+        sellOrders.save(to: ordersURL.appendingPathComponents("Sell"), as: "sell")
+        buyOrders.save(to: ordersURL.appendingPathComponents("Buy"), as: "buy")
     }
     
     func finish() -> Never {
