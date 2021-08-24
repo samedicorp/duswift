@@ -154,7 +154,6 @@ public struct LogDataParser {
     }
 
     public func parse(_ string: String) -> Any? {
-        let cleaned = string.replacingOccurrences(of: ", ]", with: "], ")
-        return parseValue(cleaned[cleaned.startIndex..<cleaned.endIndex])
+        return parseValue(string[string.startIndex..<string.endIndex])
     }
 }
