@@ -126,9 +126,14 @@ public class LogProcessor {
     
     public func run() {
         print("Parsing file.")
+        
         loadProducts()
         loadSchematics()
-        
+        loadConstructs()
+        loadPlanets()
+        loadMarkets()
+        loadRecipes()
+
         let index = loadLogIndex()
         Task {
             for entry in index.values {
@@ -233,23 +238,30 @@ public class LogProcessor {
         }
     }
     
-    func exportConstructs() {
-        print("Exporting constructs")
-        let url = LogParser.baseURL.appendingPathComponent("../dudata/Constructs/")
-        let encoder = JSONEncoder()
-        for construct in constructs.values {
-            do {
-                let encoded = try encoder.encode(construct)
-                try encoded.write(to: url.appendingPathComponent("\(construct.rData.constructId).json"))
-            } catch {
-                print("Couldn't save construct \(construct.rData.name)")
-            }
+    var constructsURL: URL { privateDataURL.appendingPathComponent("Constructs/") }
+
+    func loadConstructs() {
+        let decoder = JSONDecoder()
+        if let data = try? Data(contentsOf: constructsURL.appendingPathComponent("constructs.json")), let decoded = try? decoder.decode([Int:ConstructInfo].self, from: data) {
+            constructs = decoded
         }
     }
     
+    func exportConstructs() {
+        constructs.save(to: constructsURL, as: "constructs")
+    }
+
+    var planetsURL: URL { dudeURL.appendingPathComponent("Planets") }
+
+    func loadPlanets() {
+        let decoder = JSONDecoder()
+        if let data = try? Data(contentsOf: planetsURL.appendingPathComponent("planets.json")), let decoded = try? decoder.decode([Int:Planet].self, from: data) {
+            planets = Set(decoded.keys)
+        }
+    }
     
     func exportPlanets() {
-        let url = dudeURL.appendingPathComponent("Planets")
+        let url = planetsURL
         if FileManager.default.fileExists(atURL: url) {
             var planets: [Int:Planet] = [:]
             for id in self.planets {
@@ -260,18 +272,30 @@ public class LogProcessor {
         }
     }
     
+    func loadMarkets() {
+        let decoder = JSONDecoder()
+        if let data = try? Data(contentsOf: marketsURL.appendingPathComponent("markets.json")), let decoded = try? decoder.decode([Int:MarketInfo].self, from: data) {
+            markets = decoded
+        }
+    }
+    
+    var marketsURL: URL { dudeURL.appendingPathComponent("Markets") }
+
     func exportMarkets() {
-        let url = dudeURL.appendingPathComponent("Markets")
-        if FileManager.default.fileExists(atURL: url) {
-            markets.save(to: url, as: "markets")
+        markets.save(to: marketsURL, as: "markets")
+    }
+    
+    var recipesURL: URL { dudeURL.appendingPathComponent("Recipes") }
+
+    func loadRecipes() {
+        let decoder = JSONDecoder()
+        if let data = try? Data(contentsOf: recipesURL.appendingPathComponent("recipes.json")), let decoded = try? decoder.decode([Int:Recipe].self, from: data) {
+            recipes = decoded
         }
     }
     
     func exportRecipes() {
-        let url = dudeURL.appendingPathComponent("Recipes")
-        if FileManager.default.fileExists(atURL: url) {
-            recipes.save(to: url, as: "recipes")
-        }
+        recipes.save(to: recipesURL, as: "recipes")
     }
     
     func exportOrders() {

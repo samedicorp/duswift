@@ -16,6 +16,9 @@ class MarketOrdersHandler: LogEntryHandler {
                 let decoded = processor.dataParser.parse(string)
                 if let orders = decoded as? MarketOrders {
                     for order in orders.orders {
+                        if order.ownerName == "Elegant Chaos" {
+                            print(order)
+                        }
                         processor.register(order: order)
                     }
                 }
