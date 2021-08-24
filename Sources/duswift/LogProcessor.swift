@@ -21,24 +21,49 @@ extension NSRegularExpression {
 }
 
 
-public class LogProcessor {
-    class OrderList {
-        var orders: [Int:MarketOrder] = [:]
-    }
+class OrderList: Codable {
+    let id: Int
+    var orders: [Int:MarketOrder]
     
+    init(id: Int) {
+        self.id = id
+        self.orders = [:]
+    }
+}
+
+extension OrderList: JSONIndexable {
+    var jsonID: Int { return id }
+    var jsonName: String { return "\(id)" }
+}
+
+public class LogProcessor {
     let dataParser: LogDataParser
     let handlers: [String:LogEntryHandler]
     
     var constructs: [Int:ConstructInfo] = [:]
+    var constructsUpdated = false
+    
     var markets: [Int:MarketInfo] = [:]
+    var marketsUpdated = false
+    
     var planets: Set<Int> = []
+    var planetsUpdated = false
+    
     var recipes: [Int:Recipe] = [:]
+    var recipesUpdated = false
+    
+    var ordersUpdated = false
     var sellOrders: [Int:OrderList] = [:]
     var buyOrders: [Int:OrderList] = [:]
+    
     var products: [String:Product] = [:]
+    var productsUpdated = false
+
     var schematics: [Int:CompactSchematic] = [:]
+    var schematicsUpdated = false
+    
     var classes = LogParser.knownClasses
-    var addedClasses = false
+    var classesUpdated = false
 
     let printConstructKinds = false
     var constructKinds: Set<String> = []
@@ -89,13 +114,16 @@ public class LogProcessor {
         let id = construct.rData.constructId
         constructs[id] = construct
         constructKinds.insert(construct.kind)
-        if construct.kind == "PLANET" {
+        constructsUpdated = true
+        if construct.kind == "PLANET" && !planets.contains(id) {
             planets.insert(id)
+            planetsUpdated = true
         }
     }
     
     public func register(recipe: Recipe) {
         recipes[recipe.id] = recipe
+        recipesUpdated = true
     }
     
     public func register(order: MarketOrder) {
@@ -111,6 +139,7 @@ public class LogProcessor {
             return
         }
         
+        ordersUpdated = true
         list.orders[order.orderId] = order
     }
     
@@ -119,7 +148,7 @@ public class LogProcessor {
             return list
         }
         
-        let list = OrderList()
+        let list = OrderList(id: item)
         index[item] = list
         return list
     }
@@ -134,75 +163,34 @@ public class LogProcessor {
         loadMarkets()
         loadRecipes()
 
-        let index = loadLogIndex()
+        let index = LogIndex.load(from: logFolderURL)
         Task {
             for entry in index.values {
                 await processLog(entry)
             }
             
-            saveLogIndex(index)
+            index.save(to: logFolderURL)
             finish()
         }
         
         dispatchMain()
     }
 
-    typealias LogIndex = [String:LogStatus]
 
-    class LogStatus: Codable {
-        let name: String
-        let url: URL
-        var lastLine: Int
-        
-        init(name: String, url: URL, lastLine: Int = 0) {
-            self.name = name
-            self.url = url
-            self.lastLine = lastLine
-        }
+    var logFolderURL: URL {
+        let base = URL(fileURLWithPath: #file).deletingLastPathComponent().appendingPathComponent("../..")
+        return base.appendingPathComponent("/Extras/Logs/")
     }
 
     func loadLogIndex() -> LogIndex {
-        let decoder = JSONDecoder()
-        let base = URL(fileURLWithPath: #file).deletingLastPathComponent().appendingPathComponent("../..")
-        let logsFolder = ThrowingManager.default.folder(for: base.appendingPathComponent("/Extras/Logs/"))
-
-        let existingIndex: [String:LogStatus]
-        if let data = logsFolder.file("status.json").asData, let loaded = try? decoder.decode([String:LogStatus].self, from: data) {
-            existingIndex = loaded
-        } else {
-            existingIndex = [:]
-        }
-
-        var index: [String:LogStatus] = [:]
-        do {
-            try logsFolder.forEach { item in
-                if item.name.pathExtension == "xml" {
-                    let name = item.name.name
-                    let status = existingIndex[name] ?? LogStatus(name: name, url: item.url)
-                    index[name] = status
-                }
-            }
-        } catch {
-            print("Error iterating logs folder: \(error).")
-        }
-        
-        return index
+        return LogIndex.load(from: logFolderURL)
     }
     
     func saveLogIndex(_ index: LogIndex) {
-        let encoder = JSONEncoder()
-        let base = URL(fileURLWithPath: #file).deletingLastPathComponent().appendingPathComponent("../..")
-        let logsFolder = ThrowingManager.default.folder(for: base.appendingPathComponent("/Extras/Logs/"))
-        let logsFile = logsFolder.file("status.json")
-        do {
-            let encoded = try encoder.encode(index)
-            try encoded.write(to: logsFile.url)
-        } catch {
-            print("Failed to write log index. \(error)")
-        }
+        index.save(to: logFolderURL)
     }
     
-    func processLog(_ log: LogStatus) async {
+    func processLog(_ log: LogIndexItem) async {
         print("Processing log \(log.name)")
         if log.lastLine > 0 {
             print("(skipping \(log.lastLine) lines)")
@@ -215,7 +203,7 @@ public class LogProcessor {
             if !classes.contains(entry.class) {
                 print("Found new class \(entry.class)")
                 classes.insert(entry.class)
-                addedClasses = true
+                classesUpdated = true
             }
             
             if let handler = handlers[entry.class] {
@@ -248,7 +236,9 @@ public class LogProcessor {
     }
     
     func exportConstructs() {
-        constructs.save(to: constructsURL, as: "constructs")
+        if constructsUpdated {
+            constructs.save(to: constructsURL, as: "constructs")
+        }
     }
 
     var planetsURL: URL { dudeURL.appendingPathComponent("Planets") }
@@ -261,17 +251,21 @@ public class LogProcessor {
     }
     
     func exportPlanets() {
-        let url = planetsURL
-        if FileManager.default.fileExists(atURL: url) {
-            var planets: [Int:Planet] = [:]
-            for id in self.planets {
-                let construct = constructs[id]!
-                planets[id] = Planet(construct)
+        if planetsUpdated {
+            let url = planetsURL
+            if FileManager.default.fileExists(atURL: url) {
+                var planets: [Int:Planet] = [:]
+                for id in self.planets {
+                    let construct = constructs[id]!
+                    planets[id] = Planet(construct)
+                }
+                planets.save(to: url, as: "planets")
             }
-            planets.save(to: url, as: "planets")
         }
     }
     
+    var marketsURL: URL { dudeURL.appendingPathComponent("Markets") }
+
     func loadMarkets() {
         let decoder = JSONDecoder()
         if let data = try? Data(contentsOf: marketsURL.appendingPathComponent("markets.json")), let decoded = try? decoder.decode([Int:MarketInfo].self, from: data) {
@@ -279,10 +273,10 @@ public class LogProcessor {
         }
     }
     
-    var marketsURL: URL { dudeURL.appendingPathComponent("Markets") }
-
     func exportMarkets() {
-        markets.save(to: marketsURL, as: "markets")
+        if marketsUpdated {
+            markets.save(to: marketsURL, as: "markets")
+        }
     }
     
     var recipesURL: URL { dudeURL.appendingPathComponent("Recipes") }
@@ -295,8 +289,12 @@ public class LogProcessor {
     }
     
     func exportRecipes() {
-        recipes.save(to: recipesURL, as: "recipes")
+        if recipesUpdated {
+            recipes.save(to: recipesURL, as: "recipes")
+        }
     }
+    
+    var ordersURL: URL { privateDataURL.appendingPathComponent("Orders/") }
     
     func exportOrders() {
         print("Sell Orders")
@@ -311,10 +309,13 @@ public class LogProcessor {
                 }
             }
         }
+        
+        sellOrders.save(to: ordersURL, as: "sell")
+        buyOrders.save(to: ordersURL, as: "buy")
     }
     
     func finish() -> Never {
-        if addedClasses {
+        if classesUpdated {
             save(classes: classes)
         }
 

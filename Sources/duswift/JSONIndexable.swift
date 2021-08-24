@@ -57,7 +57,7 @@ extension Dictionary where Value: JSONIndexable, Key: Codable, Value: Codable {
                     names[name] = id
                     ids[id] = name
                 }
-                encoder.outputFormatting = []
+                encoder.outputFormatting = [.sortedKeys]
                 let encodedCompact = try encoder.encode(self)
                 try encodedCompact.write(to: url.appendingPathComponent("compact.json"))
                 let encodedNames = try encoder.encode(names)
