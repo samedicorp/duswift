@@ -26,31 +26,44 @@ public class LogProcessor {
     let handlers: [String:LogEntryHandler]
     
     var constructs: [Int:ConstructInfo] = [:]
-    var constructKinds: Set<String> = []
     var markets: [Int:MarketInfo] = [:]
     var planets: Set<Int> = []
+    var recipes: [Int:Recipe] = [:]
 
+    let printConstructKinds = false
+    var constructKinds: Set<String> = []
+
+    let printObjectTypes = false
+    var objectTypes: Set<String> = []
+    
+    let objectPattern = try! NSRegularExpression(pattern: #"(\w+):\["#, options: [])
+    
     public init() {
         self.dataParser = LogDataParser(map: DUTypeMap.default)
         self.handlers = [
             "game.login": LoginHandler(),
             "network.PIPublication": PublicationHandler(),
             "WC-REL21098-CSTS.game.market": MarketListHandler(),
-            "WC-REL21098-CSTS.ui.views.hud.panels": MarketOrdersHandler()
+            "WC-REL21098-CSTS.ui.views.hud.panels": MarketOrdersHandler(),
+            "WC-REL21098-CSTS.game.crafting": CraftingHandler()
         ]
     }
     
-    public func append(market: MarketInfo) {
+    public func register(market: MarketInfo) {
         markets[market.id] = market
     }
     
-    public func append(construct: ConstructInfo) {
+    public func register(construct: ConstructInfo) {
         let id = construct.rData.constructId
         constructs[id] = construct
         constructKinds.insert(construct.kind)
         if construct.kind == "PLANET" {
             planets.insert(id)
         }
+    }
+    
+    public func register(recipe: Recipe) {
+        recipes[recipe.id] = recipe
     }
     
     public func run() {
@@ -73,14 +86,20 @@ public class LogProcessor {
                     addedClasses = true
                 }
                 
-//                if count % 10000 == 0 {
-//                    print("\(entry.sequence)...")
-//                }
-                
                 if let handler = handlers[entry.class] {
                     handler.handle(entry, processor: self)
+                } else if entry.message.contains("RecipeQueue"){
+                    print(entry)
                 }
 
+                if printObjectTypes {
+                    let message = entry.message
+                    let matches = objectPattern.matches(in: message, range: NSRange(location: 0, length: message.count))
+                    for match in matches {
+                        objectTypes.insert(String(message[match.range(at: 1)]))
+                    }
+                }
+                
             }
             
             if addedClasses {
@@ -95,16 +114,12 @@ public class LogProcessor {
 
     func exportConstructs() {
         print("Exporting constructs")
-        for kind in constructKinds {
-            print(kind)
-        }
-        let url = LogParser.baseURL.appendingPathComponent("Extras/Exported/Constructs/")
+        let url = LogParser.baseURL.appendingPathComponent("../dudata/Constructs/")
         let encoder = JSONEncoder()
         for construct in constructs.values {
             do {
                 let encoded = try encoder.encode(construct)
                 try encoded.write(to: url.appendingPathComponent("\(construct.rData.constructId).json"))
-                print(construct.rData.name)
             } catch {
                 print("Couldn't save construct \(construct.rData.name)")
             }
@@ -113,7 +128,6 @@ public class LogProcessor {
     
     
     func exportPlanets() {
-        print("Exporting planets")
         let url = LogParser.baseURL.appendingPathComponent("../dude/Data/Planets")
         if FileManager.default.fileExists(atURL: url) {
             var planets: [Int:Planet] = [:]
@@ -132,16 +146,40 @@ public class LogProcessor {
         }
     }
     
-    func finish() {
+    func exportRecipes() {
+        let url = LogParser.baseURL.appendingPathComponent("../dude/Data/Recipes")
+        if FileManager.default.fileExists(atURL: url) {
+            recipes.save(to: url, as: "recipes")
+        }
+    }
+    
+    func finish() -> Never {
     
         for handler in handlers.values {
             handler.finish(processor: self)
         }
 
+        if printConstructKinds {
+            print("Found construct kinds")
+            for kind in constructKinds {
+                print(kind)
+            }
+        }
+        
+        if printObjectTypes {
+            print("Found object types:")
+            for type in objectTypes {
+                print(type)
+            }
+        }
+        
         exportConstructs()
         exportPlanets()
         exportMarkets()
+        exportRecipes()
+
         print("Done.")
+        exit(0)
     }
     
     func save(classes: Set<String>) {

@@ -21,7 +21,7 @@ class PublicationHandler: LogEntryHandler {
             let string = String(message[message.index(message.startIndex, offsetBy: 12)...])
             let decoded = processor.dataParser.parse(string)
             if let construct = decoded as? ConstructInfo {
-                processor.append(construct: construct)
+                processor.register(construct: construct)
             }
         }
     }

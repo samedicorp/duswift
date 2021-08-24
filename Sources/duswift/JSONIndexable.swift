@@ -46,6 +46,7 @@ extension Dictionary where Value: JSONIndexable, Key: Codable, Value: Codable {
     func save(to url: URL, as name: String) {
         if FileManager.default.fileExists(atURL: url) {
             do {
+                print("Exporting \(name)")
                 let encoder = JSONEncoder()
 
                 var names: [String:Int] = [:]

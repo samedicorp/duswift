@@ -16,7 +16,7 @@ class MarketListHandler: LogEntryHandler {
                 let decoded = processor.dataParser.parse(string)
                 if let markets = decoded as? MarketList {
                     for market in markets.markets {
-                        processor.append(market: market)
+                        processor.register(market: market)
                     }
                 }
             }

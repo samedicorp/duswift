@@ -36,7 +36,7 @@ final class duswiftTests: XCTestCase {
     }
     
     func testPlanetParser() {
-        let source = "PlanetProperties:[description = PlanetDescription:[displayName = Madis Moon 1, discoveredBy = , type = , biosphere = , classification = , habitabilityClass = , information = , positionFromSun = 0, numSatellites = 0], ores = [AluminiumOre, CarbonOre, IronOre, LithiumOre, ScandiumOre, SiliconOre, ]isTutorial = false, isSanctuary = false, territoryTileSize = 500, altitudeReferenceRadius = 10000, minGenerationRadiusHint = 0, maxGenerationRadiusHint = 0, seaLevelGravity = 0.785, seaLevelRadius = UNSET, atmosphere = UNSET, clouds = UNSET, ], pipelineURL = https://d1hbjfwzt2gn5p.cloudfront.net/public/voxels/constructs/10/pipeline, pipeline = UNSET, ]"
+//        let source = "PlanetProperties:[description = PlanetDescription:[displayName = Madis Moon 1, discoveredBy = , type = , biosphere = , classification = , habitabilityClass = , information = , positionFromSun = 0, numSatellites = 0], ores = [AluminiumOre, CarbonOre, IronOre, LithiumOre, ScandiumOre, SiliconOre, ]isTutorial = false, isSanctuary = false, territoryTileSize = 500, altitudeReferenceRadius = 10000, minGenerationRadiusHint = 0, maxGenerationRadiusHint = 0, seaLevelGravity = 0.785, seaLevelRadius = UNSET, atmosphere = UNSET, clouds = UNSET, ], pipelineURL = https://d1hbjfwzt2gn5p.cloudfront.net/public/voxels/constructs/10/pipeline, pipeline = UNSET, ]"
     }
     
     func testConstructParser() {
