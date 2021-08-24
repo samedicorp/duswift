@@ -51,7 +51,7 @@ public struct LogDataParser {
             }
 
         } else if (trimmed.first == "[") && (trimmed.last == "]") {
-            return parseList(values: trimmed[trimmed.index(after: trimmed.startIndex)..<trimmed.endIndex])
+            return parseList(values: trimmed[trimmed.index(after: trimmed.startIndex)..<trimmed.index(before: trimmed.endIndex)])
             
         } else if let match = datePattern.firstMatch(in: trimmed, options: [], range: range) {
             let dateString = String(trimmed[match.range(at: 2)])
@@ -125,6 +125,16 @@ public struct LogDataParser {
                 nesting += 1
             } else if char == "]" {
                 nesting -= 1
+                if nesting == 0 {
+                    let next = values.index(after: index)
+                    if let pair = parsePair(values[start ... index], index: object.count) {
+                        object[pair.0] = pair.1
+                        if (next < values.endIndex) && values[next] == "," {
+                            index = next
+                        }
+                        start = values.index(after: index)
+                    }
+                }
             } else if (nesting == 0) && (char == ",") {
                 if let pair = parsePair(values[start ..< index], index: object.count) {
                     object[pair.0] = pair.1
